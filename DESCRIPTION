@@ -1,0 +1,50 @@
+Package: borestapi
+Title: Interface to SAP Business Object REST API
+Version: 0.0.0.9000
+Authors@R: 
+    person("John", "Capehart", , "R@jcapehart.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package imports and exports data to SAP Business Objects.
+    It fetches data from SAP Business Objects reports. It pushes excel files to SAP Business Objects local files.
+License: MIT + file LICENSE
+Imports:
+    cli,
+    futile.logger,
+    glue,
+    httr,
+    jsonlite,
+    keyring,
+    lifecycle,
+    lubridate,
+    magrittr,
+    openxlsx,
+    rlang,
+    RSQLite,
+    stringr,
+    tidyverse,
+    tools,
+    withr,
+    methods,
+    readr,
+    getPass,
+    dplyr,
+    tibble,
+    tidyr,
+    purrr
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
+Collate:
+    'api-utils.R'
+    'borestapi-package.R'
+    'compat-purrr.R'
+    'connect.R'
+    'document.R'
+    'globals.R'
+    'report.R'
+    'spreadsheet.R'
+    'utils.R'
+Suggests: 
+    testthat (>= 3.0.0),
+    tinytex
+Config/testthat/edition: 3
