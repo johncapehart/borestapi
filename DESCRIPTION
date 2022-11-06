@@ -10,14 +10,16 @@ License: MIT + file LICENSE
 Imports:
     digest,
     futile.logger,
+    glue,
     httr,
     jsonlite,
-    keyring,,
+    keyring,
+    lifecycle,
     lubridate,
     magrittr,
     rlang,
     RSQLite,
-    stringr,,
+    stringr,
     methods,
     readr,
     dplyr,
@@ -34,8 +36,10 @@ Collate:
     'connect.R'
     'document.R'
     'globals.R'
+    'password.R'
     'report.R'
     'spreadsheet.R'
+    'token-cache.R'
     'utils.R'
 Suggests: 
     glue,
