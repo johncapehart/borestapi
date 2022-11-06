@@ -5,7 +5,6 @@
 #' @importFrom magrittr %<>% %>%
 #' @importFrom httr GET POST PUT DELETE add_headers upload_file content config
 #' @importFrom jsonlite toJSON fromJSON
-#' @importFrom getPass getPass
 #' @importFrom RSQLite dbConnect dbDisconnect dbExecute dbListTables dbReadTable dbWriteTable dbAppendTable
 #' @include api-utils.R
 #'
@@ -132,11 +131,11 @@ listToJSON <- function(list) {
 
 #' Check to see if an SAP access token is still valid
 #'
-#' @param server Server name and port to connect to
 #' @param conn connection reference
-#'
+#' @param server Server name and port to connect to
+#' @param extra_test This is required to be TRUE for valid test
 #' @return TRUE if connection is valid, FALSE otherwise
-check_bo_connection_state <- function(conn, server, extra_test = FALSE) {
+check_bo_connection_state <- function(conn, server, extra_test = TRUE) {
   if (hasArg("conn") && !is.null(conn) && !is.null(conn$request)) {
     request <- conn$request # request is the mutable object referred to by the reference
     if (server == request$headers[["Host"]] && !is.null(request$url)) {
@@ -158,6 +157,8 @@ check_bo_connection_state <- function(conn, server, extra_test = FALSE) {
           if (response$status_code != 401) {
             mycat("POST Test of connection succeeded", url, response$status_code, content(response, as = "text", encoding = "UTF-8"), ";testBORequest line 149")
             return(TRUE)
+          } else {
+            mycat("POST Test of connection failed", url, ";testBORequest line 161")
           }
         } else {
           return(TRUE)

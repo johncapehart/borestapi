@@ -4,7 +4,7 @@
 \name{borestapi-package}
 \alias{borestapi}
 \alias{borestapi-package}
-\title{borestapi: Interface to SAP Business Object REST API}
+\title{borestapi: Interface to SAP Business Objects REST API}
 \description{
 This package imports and exports data to SAP Business Objects. It fetches data from SAP Business Objects reports. It pushes excel files to SAP Business Objects local files.
 }
