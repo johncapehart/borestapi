@@ -10,34 +10,34 @@ testNumericArgument <- function(x) {
   quietly(function(x)!is.na(as.numeric(x)))(x)$result
 }
 
-#' Get data from a document provider
+#' Get data directly from a document data provider
+#' See also get_bo_document_report
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
 #' @param provider_id Numeric id of the provider
 #' @param ... Parameters for read_delim
 #'
-#' @return
+#' @return Tible of data
 #' @export
-
 get_bo_document_data <- function(conn, document, provider_id, ...) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
   request$headers[["Accept"]] <- "text/plain"
   url <- paste(url, provider_id, "flows/0", sep = "/")
   response <- GET(url = url, request)
-  df <- content(response, as = "text", encoding = "UTF-8") %>% read_delim(delim = ";", ...)
+  df <- content(response, as = "text", encoding = "UTF-8") %>% read_delim(delim = ";", show_col_types = FALSE, ...)
   report_api_error(request, response, paste("Get document data rows", nrow(df), "columns", ncol(df)), "get_bo_documentData", 246)
   df
 }
 
-#' Title
+#' Close BO Webi document
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
 #' @param save If true save the document before closing
 #'
-#' @return
+#' @return Response content
 #' @export
 close_bo_document <- function(conn, document, save = FALSE) {
   request <- check_bo_connection(conn)
@@ -67,36 +67,34 @@ close_bo_document <- function(conn, document, save = FALSE) {
   }
 }
 
-#' Title
+#' Upload a new webi document
 #'
 #' @param conn Connection reference
-#' @param filepath
-#' @param filename
-#' @param folder_id
-#' @param server
+#' @param filepath Path to document (including filename)
+#' @param filename name of document
+#' @param folder_id Numeric id of parent folder for document
 #'
-#' @return
+#' @return Response content
 #' @export
-POST_bo_document <- function(conn, filepath, filename, folder_id, server) {
+POST_bo_document <- function(conn, filepath, filename, folder_id) {
   request <- check_bo_connection(conn)
   .body <- upload_file(filepath)
   request$headers[["Accept"]] <- "*/*"
   request$headers[["Accept-Encoding"]] <- "gzip, deflate"
-  request$headers[["Host"]] <- server
   request$headers[["Content-Type"]] <- "multipart/form-data"
   url <- paste0(request$url, "/infostore/folder/", folder_id, "/file")
   response <- POST(url, body = list(y = .body), request)
   report_api_error(request, response, paste(";POST", filepath,filename), "POST_bo_document", 83)
 }
 
-#' Title
+#' Upload an existing BO Webi document
 #'
 #' @param conn Connection reference
-#' @param filepath
-#' @param filename
-#' @param document_id
+#' @param filepath Path to document (including filename)
+#' @param filename name of document
+#' @param document_id Numeric id of Webi document
 #'
-#' @return
+#' @return Response content
 #' @export
 PUT_bo_document <- function(conn, filepath, filename, document_id) {
   request <- check_bo_connection(conn)
@@ -109,29 +107,25 @@ PUT_bo_document <- function(conn, filepath, filename, document_id) {
   report_api_error(request, response, paste(";PUT", filepath,filename,document_id), "PUT_bo_document", 94)
 }
 
-#' Title
+#' Copy a Webi document
 #'
 #' @param conn Connection reference
-#' @param documentName
-#' @param folder
-#' @param newName
+#' @param document_id Numeric id of Webi document
+#' @param folder_id Numeric id of parent folder for copy
+#' @param newName Name of new document
 #'
-#' @return
+#' @return Response content
 #' @export
-copyBODocument <- function(conn, documentName, folder, newName) {
+copyBODocument <- function(conn, document, folder_id, newName) {
   request <- check_bo_connection(conn)
-  doc <-
-    get_bo_item_from_name(conn,
-                      name = documentName,
-                      folder = folder)
-  if (nrow(doc)) {
+  document_id <- get_bo_item_id(document)
     json <-
       list("document" = list("name" = newName)) %>% listToJSON()
     write(json, ".attachmentInfos")
     .body0 <-
       upload_file(".attachmentInfos", type = "application/json")
     url <-
-      paste0(request$url, "/raylight/v1/documents?sourceId=", doc$SI_ID)
+      paste0(request$url, "/raylight/v1/documents?sourceId=", document_id)
     response <-
       POST(
         url,
@@ -142,18 +136,13 @@ copyBODocument <- function(conn, documentName, folder, newName) {
     report_api_error(
       request,
       response,
-      paste("POST copy file", documentName, doc$SI_ID),
-      "copyBODocument",
-      271
+      paste("POST copy file", document_id, "copyBODocument line 139")
     )
     content(response)
-    mycat("Copy", documentName, "complete", level = "message")
+    mycat("Copy", document_id, "to", newName, "complete", level = "message")
     if (file.exists(".attachmentInfos")) {
       file.remove(".attachmentInfos")
     }
-  } else {
-    mycat("Copy document", documentName, "does not exist", level = "error")
-  }
 }
 
 DELETE_bo_document <- function(conn, document_id) {
@@ -282,11 +271,11 @@ get_bo_document <- function(conn, document) {
   document
 }
 
-#' Title
+#' Get inputs from a report table
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param inputs Name of report inputs as path "reports/<report>/<element>"
+#' @param inputs Name of report inputs as path "reports/report/element"
 #'
 #' @return Inputs as tibble
 #' @export

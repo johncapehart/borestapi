@@ -37,18 +37,6 @@ mycat <- function(..., file = stdout(), duration = 15, level = "info") {
     {
       loggernames <- c('file','console','notification')
       result <- lapply(loggernames, function(x)logg(loggername=x,level = level, s = s))
-
-      # cat(s, file = file)
-      # if (exists("gsession", global_env())) {
-      #   session <- get("gsession", global_env())
-      #   if (!(level %in% c("default", "message", "warning", "error"))) {
-      #     level <- "default"
-      #   }
-      #   s2 <- (str_split(s, ";") %>% unlist())[1]
-      #   if (str_length(s2) > 0) {
-      #     showNotification(substr(s2, 1, 120), type = level, duration = duration, session = session)
-      #   }
-      # }
     },
     error = function(cond) {
       tryCatch(

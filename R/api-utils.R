@@ -1,3 +1,29 @@
+#' Report error in API call
+#'
+#' @param request httr::request
+#' @param response httr::request
+#' @param ... list of text arguments for message
+#'
+#' @noRd
+report_api_error <- function(request, response, ...) {
+  inputs <- list(...)
+  message1 <- paste(head(inputs, 1), collapse = " ")
+  message2 <- paste(tail(inputs, -1), collapse = " ")
+  # if(is.na(message1)||message1=='NA') #browser()()
+  if (response$status_code == 200) {
+    mycat(paste(message1, "succeeded", ";", message2, response$url))
+  } else {
+    mycat(paste(message1, "failed", response$status_code, ";", message2, response$url, request$verb, ";", content(response, as='text', encoding='UTF-8')), file = stderr())
+    # throw()
+  }
+}
+
+#' Return Id from item properties or from numeric value
+#'
+#' @param item Item properties as tibble or item id as numeric value
+#'
+#' @return Numeric id of item
+
 get_bo_item_id <- function(item) {
   if (is_list(item) || is_tibble(item) || is.environment(item)) {
     return(item$SI_ID)
@@ -15,8 +41,6 @@ get_bo_item_id <- function(item) {
 #'
 #' @return Item as a tibble of properties
 #' @export
-#'
-#'
 get_bo_item_from_id <- function(conn, id) {
   request <- check_bo_connection(conn = conn)
   query <- paste0("SELECT * FROM CI_INFOOBJECTS WHERE SI_ID=", id)
@@ -28,11 +52,7 @@ get_bo_item_from_id <- function(conn, id) {
   result[[1]]
 }
 
-append_item_query_constraints <- function(query,
-                                     name = NULL,
-                                     folder = NULL,
-                                     kind = NULL,
-                                     owner = NULL) {
+append_query_conditions <- function(query, name = NULL, folder_id = NULL, kind = NULL, owner = NULL) {
   addAnd <- function(needAnd) {
     if (needAnd) {
       return(' AND')
@@ -45,9 +65,9 @@ append_item_query_constraints <- function(query,
     query <- paste0(query, " SI_NAME='", name, "'")
     needAnd = TRUE
   }
-  if (hasArg("folder") && !is.null(folder) && folder > 0) {
+  if (hasArg("folder_id") && !is.null(folder_id) && folder_id > 0) {
     query <-
-      paste0(query, addAnd(needAnd), " SI_PARENT_FOLDER=", folder)
+      paste0(query, addAnd(needAnd), " SI_PARENT_FOLDER=", folder_id)
     needAnd = TRUE
   }
   if (hasArg("kind") && !is.null(kind) && str_length(kind) > 0) {
@@ -91,22 +111,18 @@ bind_bo_query_results_to_tibble <- function(entries) {
 #'
 #' @param conn Connection reference
 #' @param name Name of the item
-#' @param folder Numeric id of the containing folder
+#' @param folder_id Numeric id of the parent folder
 #' @param kind kind of item (optional)
 #' @param owner owner of item (optional)
 #'
-#' @return Properties as tibble
+#' @return Tibble of item properties
 #' @export
-get_bo_item_from_name <- function(conn,
-                              name,
-                              folder,
-                              kind = NULL,
-                              owner = NULL) {
+get_bo_item_from_name <- function(conn, name, folder_id, kind = NULL, owner = NULL) {
   request <- check_bo_connection(conn)
   query <- paste0(
     "SELECT SI_KIND, SI_ID, SI_PARENT_FOLDER, SI_NAME, SI_OWNER, SI_CREATION_TIME, SI_UPDATE_TS, SI_PATH FROM CI_INFOOBJECTS WHERE"
   )
-  query <- append_item_query_constraints(query, name, folder, kind, owner)
+  query <- append_query_conditions(query, name, folder_id, kind, owner)
   body <- list("query" = query) %>% listToJSON()
   url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
   response <- POST(url = url, body = body, request)
@@ -122,24 +138,20 @@ get_bo_item_from_name <- function(conn,
 #'
 #' @param conn Connection reference
 #' @param pattern glob pattern for item name matching
-#' @param folder Numeric id of the containing folder
+#' @param folder_id Numeric id of the containing folder
 #' @param kind kind of item (optional)
 #' @param owner owner of item (optional)
 #'
-#' @return Properties as tibble
+#' @return Tibble of item properties
 #' @export
-get_bo_item_from_pattern <- function(conn,
-                                 pattern,
-                                 folder = NULL,
-                                 kind = NULL,
-                                 owner = NULL) {
+get_bo_item_from_pattern <- function(conn, pattern, folder_id = NULL, kind = NULL, owner = NULL) {
   request <- check_bo_connection(conn)
   query <- paste0(
     "SELECT SI_KIND, SI_ID, SI_NAME, SI_OWNER, SI_CREATION_TIME FROM CI_INFOOBJECTS WHERE SI_NAME LIKE '",
     pattern,
     "'"
   )
-  query <- append_item_query_constraints(query, folder, kind, owner)
+  query <- append_query_conditions(query, folder_id, kind, owner)
   body <- list("query" = query) %>% listToJSON()
   url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
   response <- POST(url = url, body = body, request)
@@ -196,7 +208,7 @@ GET_bo_raylight_endpoint <- function(conn, ..., querystring) {
     url <- paste0(url, querystring)
   }
   response <- GET(url = url, request)
-  report_api_error(request, response, ";Children", "GET_bo_raylight_endpoint 34")
+  report_api_error(request, response, ";Children", "GET_bo_raylight_endpoint 197")
   return_bo_response_content(response)
 }
 
@@ -213,7 +225,7 @@ PUT_bo_raylight_endpoint <- function(conn, ..., querystring, body = NULL) {
     body <- body %>% toJSON()
   }
   response <- PUT(url = url, body = body, request)
-  report_api_error(request, response, ";Children", "PUT_bo_raylight_endpoint 48")
+  report_api_error(request, response, ";Children", "PUT_bo_raylight_endpoint 214")
   return_bo_response_content(response)
 }
 

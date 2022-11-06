@@ -8,7 +8,7 @@
 #' @param folder_id Numeric id of the folder
 #' @param format HTTP body format to use
 #'
-#' @return
+#' @return Response content
 POST_bo_spreadsheet_raw <- function(conn,  filepath, filename, folder_id, format = 'json') {
   request <- check_bo_connection(conn)
   mimeType <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -22,7 +22,7 @@ POST_bo_spreadsheet_raw <- function(conn,  filepath, filename, folder_id, format
   fileData <- readBin(filepath, "raw")
   con = file("body.txt", "wb")
   writeBin(paste0(boundary2, "\r\n", "Content-Disposition: form-data; name=\"attachmentInfos\"\r\nContent-Type: application/json\r\n\r\n",
-                  '{"spreadsheet":{"name":"',filename,'","folder_id":',folder,'}}\r\n',
+                  '{"spreadsheet":{"name":"',filename,'","folder_id":',folder_id,'}}\r\n',
                   boundary2,"\r\n",
                   "Content-Disposition: form-data; name=\"attachmentContent\"\r\n",
                   "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n\r\n"), con=con)
@@ -114,13 +114,13 @@ PUT_bo_spreadsheet <- function(conn, filepath, filename, sheetId) {
 #'
 #' @param conn Connection reference
 #' @param filename Name of the spreadsheet
-#' @param folder Numeric id of the folder
+#' @param folder_id Numeric id of the folder
 #'
 #' @return List of properties
 #' @export
-GET_bo_spreadsheet <- function(conn, filename, folder) {
+GET_bo_spreadsheet <- function(conn, filename, folder_id) {
   request <- check_bo_connection(conn)
-  sheet <- get_bo_item_from_name(conn, filename, folder = folder, kind = "Excel")
+  sheet <- get_bo_item_from_name(conn, filename, folder_id = folder_id, kind = "Excel")
 
   request$headers = add_bo_headers(request$headers)
   if (nrow(sheet)) {
@@ -135,13 +135,13 @@ GET_bo_spreadsheet <- function(conn, filename, folder) {
 #'
 #' @param conn Connection reference
 #' @param filename Name of the spreadsheet
-#' @param folder Numeric id of the folder
+#' @param folder_id Numeric id of the folder
 #'
-#' @return
+#' @return Response content
 #' @export
-DELETE_bo_spreadsheet <- function(conn, filename, folder) {
+DELETE_bo_spreadsheet <- function(conn, filename, folder_id) {
   request <- check_bo_connection(conn)
-  sheet <- get_bo_item_from_name(conn, filename, folder = folder, kind = "Excel")
+  sheet <- get_bo_item_from_name(conn, filename, folder_id = folder_id, kind = "Excel")
 
   request$headers = add_bo_headers(request$headers)
   if (nrow(sheet) == 1) {
@@ -157,17 +157,17 @@ DELETE_bo_spreadsheet <- function(conn, filename, folder) {
 #' @param conn Connection reference
 #' @param filepath Path to spreadsheet file (including file name)
 #' @param filename Name of the spreadsheet
-#' @param folder Numeric id of the folder
+#' @param folder_id Numeric id of the folder
 #'
 #' @return List of properties for spreadsheet
 #' @export
-upload_bo_spreadsheet <- function(conn, filepath, filename, folder) {
+upload_bo_spreadsheet <- function(conn, filepath, filename, folder_id) {
   request <- check_bo_connection(conn)
   mycat(";Upload excel file",  filename, ";upload_bo_spreadsheet 141", duration = 60)
-  sheet <- get_bo_item_from_name(conn, filename, folder = folder, kind = "Excel")
+  sheet <- get_bo_item_from_name(conn, filename, folder_id = folder_id, kind = "Excel")
   if (nrow(sheet)) {
     sheet <- PUT_bo_spreadsheet(conn, filepath, filename, sheetId = sheet$SI_ID)
   } else {
-    sheet <- POST_bo_spreadsheet(conn, filepath, filename, folder_id = folder)
+    sheet <- POST_bo_spreadsheet(conn, filepath, filename, folder_id = folder_id)
   }
 }

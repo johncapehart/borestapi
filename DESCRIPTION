@@ -9,6 +9,7 @@ Description: This package imports and exports data to SAP Business Objects.
 License: MIT + file LICENSE
 Imports:
     cli,
+    digest,
     futile.logger,
     glue,
     httr,
@@ -17,7 +18,6 @@ Imports:
     lifecycle,
     lubridate,
     magrittr,
-    openxlsx,
     rlang,
     RSQLite,
     stringr,
@@ -45,6 +45,7 @@ Collate:
     'spreadsheet.R'
     'utils.R'
 Suggests: 
+    openxlsx,
     testthat (>= 3.0.0),
     tinytex
 Config/testthat/edition: 3

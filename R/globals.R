@@ -6,5 +6,5 @@
 utils::globalVariables(c("SI_ID", "SI_UPDATE_TS"))
 utils::globalVariables(c("name", "id", "folder"))
 utils::globalVariables(c("serverkey","usernamekey","serverkey","token"))
-utils::globalVariables(c("throw.error", ".", "Date", "pdate"))
+utils::globalVariables(c(".", "Date", "pdate"))
 
