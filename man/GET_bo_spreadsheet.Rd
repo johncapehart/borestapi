@@ -4,14 +4,14 @@
 \alias{GET_bo_spreadsheet}
 \title{Get spreadsheet properties from BO}
 \usage{
-GET_bo_spreadsheet(conn, filename, folder_id)
+GET_bo_spreadsheet(conn, filename, parent_folder)
 }
 \arguments{
 \item{conn}{Connection reference}
 
 \item{filename}{Name of the spreadsheet}
 
-\item{folder_id}{Numeric id of the folder}
+\item{parent_folder}{Numeric id of the folder}
 }
 \value{
 List of properties

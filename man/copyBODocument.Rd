@@ -4,16 +4,16 @@
 \alias{copyBODocument}
 \title{Copy a Webi document}
 \usage{
-copyBODocument(conn, document, folder_id, newName)
+copyBODocument(conn, document, parent_folder, destination_document_name)
 }
 \arguments{
 \item{conn}{Connection reference}
 
-\item{folder_id}{Numeric id of parent folder for copy}
+\item{document}{Numeric id or tibble of properties of Webi document}
 
-\item{newName}{Name of new document}
+\item{parent_folder}{Numeric id of parent folder for copy}
 
-\item{document_id}{Numeric id of Webi document}
+\item{destination_document_name}{Name of destination document}
 }
 \value{
 Response content

@@ -4,14 +4,17 @@
 \alias{get_bo_document_control_selection_set}
 \title{Title}
 \usage{
-get_bo_document_control_selection_set(conn, document, controlName = NULL)
+get_bo_document_control_selection_set(conn, document, control_name = NULL)
 }
 \arguments{
 \item{conn}{Connection reference}
 
 \item{document}{Document as numeric id or tibble of properties}
 
-\item{controlName}{}
+\item{control_name}{Name of the control}
+}
+\value{
+Control selection set as tibble
 }
 \description{
 Title

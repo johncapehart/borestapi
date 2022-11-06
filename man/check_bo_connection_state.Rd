@@ -4,7 +4,7 @@
 \alias{check_bo_connection_state}
 \title{Check to see if an SAP access token is still valid}
 \usage{
-check_bo_connection_state(conn, server, extra_test = TRUE)
+check_bo_connection_state(conn, server)
 }
 \arguments{
 \item{conn}{connection reference}

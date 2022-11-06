@@ -7,7 +7,7 @@
 get_bo_item_from_pattern(
   conn,
   pattern,
-  folder_id = NULL,
+  parent_folder = NULL,
   kind = NULL,
   owner = NULL
 )
@@ -17,7 +17,7 @@ get_bo_item_from_pattern(
 
 \item{pattern}{glob pattern for item name matching}
 
-\item{folder_id}{Numeric id of the containing folder}
+\item{parent_folder}{Numeric id of the containing folder}
 
 \item{kind}{kind of item (optional)}
 

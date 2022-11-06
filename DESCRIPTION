@@ -41,9 +41,8 @@ Collate:
     'spreadsheet.R'
     'token-cache.R'
     'utils.R'
-Suggests: 
-    glue,
-    lifecycle,
+Suggests:
+    getPass,
     openxlsx,
     testthat (>= 3.0.0),
     tinytex,

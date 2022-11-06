@@ -4,14 +4,14 @@
 \alias{DELETE_bo_spreadsheet}
 \title{Delete a spreadsheet from BO}
 \usage{
-DELETE_bo_spreadsheet(conn, filename, folder_id)
+DELETE_bo_spreadsheet(conn, filename, parent_folder)
 }
 \arguments{
 \item{conn}{Connection reference}
 
 \item{filename}{Name of the spreadsheet}
 
-\item{folder_id}{Numeric id of the folder}
+\item{parent_folder}{Numeric id of the folder}
 }
 \value{
 Response content

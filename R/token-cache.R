@@ -32,11 +32,11 @@ get_saved_tokens <- function(username, server) {
   return(filteredtokens)
 }
 
-remove_cached_bo_token <- function(token) {
-  mycat("removing token", token, ";remove_cached_bo_token line 316")
+remove_cached_token <- function(token) {
+  mycat("removing token", token, ";remove_cached_token line 316")
   conn <- dbConnect(RSQLite::SQLite(), dbname = get_bo_token_database_path())
   dbExecute(conn, paste0("DELETE FROM tokens WHERE token='", token, "'"))
-  mycat("token removed", token, "count", nrow(dbReadTable(conn, "tokens")), ";remove_cached_bo_token line 335")
+  mycat("token removed", token, "count", nrow(dbReadTable(conn, "tokens")), ";remove_cached_token line 335")
   dbDisconnect(conn)
 }
 

@@ -4,14 +4,27 @@
 \alias{set_bo_document_control_selection}
 \title{Title}
 \usage{
-set_bo_document_control_selection(conn, document, controlName, selections, all)
+set_bo_document_control_selection(
+  conn,
+  document,
+  control_name,
+  selections,
+  all
+)
 }
 \arguments{
 \item{conn}{Connection reference}
 
 \item{document}{Document as numeric id or tibble of properties}
 
-\item{all}{}
+\item{control_name}{Name of the control}
+
+\item{selections}{Selected items}
+
+\item{all}{Select all items}
+}
+\value{
+Response content
 }
 \description{
 Title

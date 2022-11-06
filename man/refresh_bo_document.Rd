@@ -11,7 +11,10 @@ refresh_bo_document(conn, document, dataSourceType = NULL)
 
 \item{document}{Document as numeric id or tibble of properties}
 
-\item{dataSourceType}{}
+\item{dataSourceType}{Type of data source to refresh}
+}
+\value{
+Response content
 }
 \description{
 Title

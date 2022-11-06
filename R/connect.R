@@ -34,7 +34,7 @@ listToJSON <- function(list) {
 #' @param server Server name and port to connect to
 
 #' @return TRUE if connection is valid, FALSE otherwise
-check_bo_connection_state <- function(conn, server, extra_test = TRUE) {
+check_bo_connection_state <- function(conn, server) {
   if (hasArg("conn") && !is.null(conn) && !is.null(conn$request)) {
     request <- conn$request # request is the mutable object referred to by the reference
     if (server == request$headers[["Host"]] && !is.null(request$url)) {
@@ -95,7 +95,7 @@ get_cached_token <- function(conn, server, username) {
       } else {
         mycat("removing token ----------------------------------------------------------------")
         cat("try_token", "token", token, "failed, removing token")
-        remove_cached_bo_token(token)
+        remove_cached_token(token)
       }
     }
   }
@@ -136,7 +136,8 @@ get_new_token <- function(conn, server, username, password = NULL) {
 #'
 #' @param server Server to connect to "server:port"
 #' @param conn Connection reference to reuse (optional)
-#'
+#' @param username (optional)
+#' @param password (optional)
 #' @return Connection reference
 #' @export
 #'

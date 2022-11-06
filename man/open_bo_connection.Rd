@@ -14,6 +14,10 @@ open_bo_connection(
 \arguments{
 \item{server}{Server to connect to "server:port"}
 
+\item{username}{(optional)}
+
+\item{password}{(optional)}
+
 \item{conn}{Connection reference to reuse (optional)}
 }
 \value{

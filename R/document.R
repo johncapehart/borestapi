@@ -3,8 +3,7 @@
 #' @importFrom tidyr pivot_wider
 #' @include api-utils.R
 #'
-#'
-#'
+
 
 testNumericArgument <- function(x) {
   quietly(function(x)!is.na(as.numeric(x)))(x)$result
@@ -72,17 +71,17 @@ close_bo_document <- function(conn, document, save = FALSE) {
 #' @param conn Connection reference
 #' @param filepath Path to document (including filename)
 #' @param filename name of document
-#' @param folder_id Numeric id of parent folder for document
+#' @param parent_folder Numeric id of parent folder for document
 #'
 #' @return Response content
 #' @export
-POST_bo_document <- function(conn, filepath, filename, folder_id) {
+POST_bo_document <- function(conn, filepath, filename, parent_folder) {
   request <- check_bo_connection(conn)
   .body <- upload_file(filepath)
   request$headers[["Accept"]] <- "*/*"
   request$headers[["Accept-Encoding"]] <- "gzip, deflate"
   request$headers[["Content-Type"]] <- "multipart/form-data"
-  url <- paste0(request$url, "/infostore/folder/", folder_id, "/file")
+  url <- paste0(request$url, "/infostore/folder/", parent_folder, "/file")
   response <- POST(url, body = list(y = .body), request)
   report_api_error(request, response, paste(";POST", filepath,filename), "POST_bo_document", 83)
 }
@@ -110,17 +109,17 @@ PUT_bo_document <- function(conn, filepath, filename, document_id) {
 #' Copy a Webi document
 #'
 #' @param conn Connection reference
-#' @param document_id Numeric id of Webi document
-#' @param folder_id Numeric id of parent folder for copy
-#' @param newName Name of new document
+#' @param document Numeric id or tibble of properties of Webi document
+#' @param parent_folder Numeric id of parent folder for copy
+#' @param destination_document_name Name of destination document
 #'
 #' @return Response content
 #' @export
-copyBODocument <- function(conn, document, folder_id, newName) {
+copyBODocument <- function(conn, document, parent_folder, destination_document_name) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
     json <-
-      list("document" = list("name" = newName)) %>% listToJSON()
+      list("document" = list("name" = destination_document_name)) %>% listToJSON()
     write(json, ".attachmentInfos")
     .body0 <-
       upload_file(".attachmentInfos", type = "application/json")
@@ -139,7 +138,7 @@ copyBODocument <- function(conn, document, folder_id, newName) {
       paste("POST copy file", document_id, "copyBODocument line 139")
     )
     content(response)
-    mycat("Copy", document_id, "to", newName, "complete", level = "message")
+    mycat("Copy", document_id, "to", destination_document_name, "complete", level = "message")
     if (file.exists(".attachmentInfos")) {
       file.remove(".attachmentInfos")
     }
@@ -152,10 +151,15 @@ DELETE_bo_document <- function(conn, document_id) {
   report_api_error(request, response, paste(";DELETE",document_id), "delete_bo_document", 101)
 }
 
-GET_bo_document_control_selection <- function(conn, document, controlName) {
+GET_bo_document_controls <- function(conn, document) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <- GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = "")
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == controlName)
+  GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = "")
+}
+
+GET_bo_document_control_selection <- function(conn, document, control_name) {
+  document_id <- get_bo_item_id(document)
+  inputcontrols <-GET_bo_document_controls(conn, document)
+  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
   result <- GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
 }
 
@@ -163,15 +167,17 @@ GET_bo_document_control_selection <- function(conn, document, controlName) {
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param controlName
+#' @param control_name Name of the control
 #'
-#' @return
+#' @return Control selection set as tibble
 #' @export
 
-get_bo_document_control_selection_set <- function(conn, document, controlName = NULL) {
+get_bo_document_control_selection_set <- function(conn, document, control_name = NULL) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <- GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = "")
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == controlName)
+  inputcontrols <- GET_bo_document_controls(conn, document)
+  if (!isNullOrEmpty(control_name)) {
+      inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
+  }
   inputcontrol <- GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id)
   dataobjectId <- inputcontrol$assignedDataObject$`@refId`
   result <- GET_bo_raylight_endpoint(conn, documents = document_id, dataobjects = dataobjectId, lov = "")
@@ -182,20 +188,20 @@ get_bo_document_control_selection_set <- function(conn, document, controlName = 
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param controlName
-#' @param selections
-#' @param all
+#' @param control_name Name of the control
+#' @param selections Selected items
+#' @param all Select all items
 #'
-#' @return
+#' @return Response content
 #' @export
-set_bo_document_control_selection <- function(conn, document, controlName, selections, all) {
+set_bo_document_control_selection <- function(conn, document, control_name, selections, all) {
   document_id <- get_bo_item_id(document)
   inputcontrols <- GET_bo_raylight_endpoint(conn,documents = document_id, inputcontrols = "")
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == controlName)
+  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
   v <- enframe(selections, name = NULL)
   l <- list(selection = list(value = list(selections)))
   b <- toJSON(l)
-  result <- PUT_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "", body = l)
+  PUT_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "", body = l)
 }
 
 dateToBOQueryFilterDate <- function(d) {
@@ -211,11 +217,11 @@ queryFilterDateToDate <- function(d) {
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param dataprovider
-#' @param startDate
-#' @param endDate
+#' @param dataprovider Name of data provider from document
+#' @param startDate Start of date range
+#' @param endDate End of date range
 #'
-#' @return
+#' @return Response content
 #' @export
 #'
 set_bo_document_data_source_date_range <- function(conn, document, dataprovider, startDate, endDate) {
@@ -241,9 +247,9 @@ refreshBODataProvider <- function(conn, document_id, dataSourceId) {
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param dataSourceType
+#' @param dataSourceType Type of data source to refresh
 #'
-#' @return
+#' @return Response content
 #' @export
 refresh_bo_document <- function(conn, document, dataSourceType = NULL) {
   document_id <- get_bo_item_id(document)

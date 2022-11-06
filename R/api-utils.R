@@ -52,7 +52,7 @@ get_bo_item_from_id <- function(conn, id) {
   result[[1]]
 }
 
-append_query_conditions <- function(query, name = NULL, folder_id = NULL, kind = NULL, owner = NULL) {
+append_query_conditions <- function(query, name = NULL, parent_folder = NULL, kind = NULL, owner = NULL) {
   addAnd <- function(needAnd) {
     if (needAnd) {
       return(' AND')
@@ -65,9 +65,9 @@ append_query_conditions <- function(query, name = NULL, folder_id = NULL, kind =
     query <- paste0(query, " SI_NAME='", name, "'")
     needAnd = TRUE
   }
-  if (hasArg("folder_id") && !is.null(folder_id) && folder_id > 0) {
+  if (hasArg("parent_folder") && !is.null(parent_folder) && parent_folder > 0) {
     query <-
-      paste0(query, addAnd(needAnd), " SI_PARENT_FOLDER=", folder_id)
+      paste0(query, addAnd(needAnd), " SI_PARENT_FOLDER=", parent_folder)
     needAnd = TRUE
   }
   if (hasArg("kind") && !is.null(kind) && str_length(kind) > 0) {
@@ -111,18 +111,18 @@ bind_bo_query_results_to_tibble <- function(entries) {
 #'
 #' @param conn Connection reference
 #' @param name Name of the item
-#' @param folder_id Numeric id of the parent folder
+#' @param parent_folder Numeric id of the parent folder
 #' @param kind kind of item (optional)
 #' @param owner owner of item (optional)
 #'
 #' @return Tibble of item properties
 #' @export
-get_bo_item_from_name <- function(conn, name, folder_id, kind = NULL, owner = NULL) {
+get_bo_item_from_name <- function(conn, name, parent_folder, kind = NULL, owner = NULL) {
   request <- check_bo_connection(conn)
   query <- paste0(
     "SELECT SI_KIND, SI_ID, SI_PARENT_FOLDER, SI_NAME, SI_OWNER, SI_CREATION_TIME, SI_UPDATE_TS, SI_PATH FROM CI_INFOOBJECTS WHERE"
   )
-  query <- append_query_conditions(query, name, folder_id, kind, owner)
+  query <- append_query_conditions(query, name, parent_folder, kind, owner)
   body <- list("query" = query) %>% listToJSON()
   url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
   response <- POST(url = url, body = body, request)
@@ -138,20 +138,20 @@ get_bo_item_from_name <- function(conn, name, folder_id, kind = NULL, owner = NU
 #'
 #' @param conn Connection reference
 #' @param pattern glob pattern for item name matching
-#' @param folder_id Numeric id of the containing folder
+#' @param parent_folder Numeric id of the containing folder
 #' @param kind kind of item (optional)
 #' @param owner owner of item (optional)
 #'
 #' @return Tibble of item properties
 #' @export
-get_bo_item_from_pattern <- function(conn, pattern, folder_id = NULL, kind = NULL, owner = NULL) {
+get_bo_item_from_pattern <- function(conn, pattern, parent_folder = NULL, kind = NULL, owner = NULL) {
   request <- check_bo_connection(conn)
   query <- paste0(
     "SELECT SI_KIND, SI_ID, SI_NAME, SI_OWNER, SI_CREATION_TIME FROM CI_INFOOBJECTS WHERE SI_NAME LIKE '",
     pattern,
     "'"
   )
-  query <- append_query_conditions(query, folder_id, kind, owner)
+  query <- append_query_conditions(query, parent_folder, kind, owner)
   body <- list("query" = query) %>% listToJSON()
   url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
   response <- POST(url = url, body = body, request)

@@ -4,7 +4,7 @@
 \alias{POST_bo_document}
 \title{Upload a new webi document}
 \usage{
-POST_bo_document(conn, filepath, filename, folder_id)
+POST_bo_document(conn, filepath, filename, parent_folder)
 }
 \arguments{
 \item{conn}{Connection reference}
@@ -13,7 +13,7 @@ POST_bo_document(conn, filepath, filename, folder_id)
 
 \item{filename}{name of document}
 
-\item{folder_id}{Numeric id of parent folder for document}
+\item{parent_folder}{Numeric id of parent folder for document}
 }
 \value{
 Response content

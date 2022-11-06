@@ -4,7 +4,7 @@
 \alias{upload_bo_spreadsheet}
 \title{Title}
 \usage{
-upload_bo_spreadsheet(conn, filepath, filename, folder_id)
+upload_bo_spreadsheet(conn, filepath, filename, parent_folder)
 }
 \arguments{
 \item{conn}{Connection reference}
@@ -13,7 +13,7 @@ upload_bo_spreadsheet(conn, filepath, filename, folder_id)
 
 \item{filename}{Name of the spreadsheet}
 
-\item{folder_id}{Numeric id of the folder}
+\item{parent_folder}{Numeric id of the folder}
 }
 \value{
 List of properties for spreadsheet

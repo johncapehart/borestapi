@@ -4,14 +4,14 @@
 \alias{get_bo_item_from_name}
 \title{Retreive BO item by name}
 \usage{
-get_bo_item_from_name(conn, name, folder_id, kind = NULL, owner = NULL)
+get_bo_item_from_name(conn, name, parent_folder, kind = NULL, owner = NULL)
 }
 \arguments{
 \item{conn}{Connection reference}
 
 \item{name}{Name of the item}
 
-\item{folder_id}{Numeric id of the parent folder}
+\item{parent_folder}{Numeric id of the parent folder}
 
 \item{kind}{kind of item (optional)}
 

@@ -17,7 +17,14 @@ set_bo_document_data_source_date_range(
 
 \item{document}{Document as numeric id or tibble of properties}
 
-\item{endDate}{}
+\item{dataprovider}{Name of data provider from document}
+
+\item{startDate}{Start of date range}
+
+\item{endDate}{End of date range}
+}
+\value{
+Response content
 }
 \description{
 Title
