@@ -43,8 +43,12 @@ Collate:
     'utils.R'
 Suggests:
     getPass,
+    knitr,
     openxlsx,
+    qpdf,
+    rmarkdown,
     testthat (>= 3.0.0),
     tinytex,
     tools
 Config/testthat/edition: 3
+VignetteBuilder: knitr

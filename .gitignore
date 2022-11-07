@@ -9,3 +9,4 @@ renv/
 test.R
 .Rd2*
 sbo43_webi_restws_dg_en.pdf
+inst/doc

@@ -32,7 +32,7 @@ listToJSON <- function(list) {
 #'
 #' @param conn connection reference
 #' @param server Server name and port to connect to
-
+#'
 #' @return TRUE if connection is valid, FALSE otherwise
 check_bo_connection_state <- function(conn, server) {
   if (hasArg("conn") && !is.null(conn) && !is.null(conn$request)) {
@@ -83,6 +83,7 @@ check_bo_connection <- function(conn, server=Sys.getenv("BO_SERVER")) {
 #' @param username Username
 #'
 #' @return TRUE if token found; FALSE otherwise
+#' @noRd
 get_cached_token <- function(conn, server, username) {
   tokens <- get_saved_tokens(username, server)$token # get matching tokens
   if (!is.null(tokens) && length(tokens) > 0) {
@@ -140,7 +141,6 @@ get_new_token <- function(conn, server, username, password = NULL) {
 #' @param password (optional)
 #' @return Connection reference
 #' @export
-#'
 open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
            username = Sys.getenv("BO_USERNAME"),
            password = NULL,
