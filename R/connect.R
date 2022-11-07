@@ -34,6 +34,7 @@ listToJSON <- function(list) {
 #' @param server Server name and port to connect to
 #'
 #' @return TRUE if connection is valid, FALSE otherwise
+#' @noRd
 check_bo_connection_state <- function(conn, server) {
   if (hasArg("conn") && !is.null(conn) && !is.null(conn$request)) {
     request <- conn$request # request is the mutable object referred to by the reference

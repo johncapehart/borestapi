@@ -75,7 +75,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
 #'
 #' @return Response content
 #' @export
-POST_bo_document <- function(conn, filepath, filename, parent_folder) {
+post_bo_document <- function(conn, filepath, filename, parent_folder) {
   request <- check_bo_connection(conn)
   .body <- upload_file(filepath)
   request$headers[["Accept"]] <- "*/*"
@@ -83,7 +83,7 @@ POST_bo_document <- function(conn, filepath, filename, parent_folder) {
   request$headers[["Content-Type"]] <- "multipart/form-data"
   url <- paste0(request$url, "/infostore/folder/", parent_folder, "/file")
   response <- POST(url, body = list(y = .body), request)
-  report_api_error(request, response, paste(";POST", filepath,filename), "POST_bo_document", 83)
+  report_api_error(request, response, paste(";POST", filepath,filename), "post_bo_document", 83)
 }
 
 #' Upload an existing BO Webi document
@@ -95,7 +95,7 @@ POST_bo_document <- function(conn, filepath, filename, parent_folder) {
 #'
 #' @return Response content
 #' @export
-PUT_bo_document <- function(conn, filepath, filename, document_id) {
+put_bo_document <- function(conn, filepath, filename, document_id) {
   request <- check_bo_connection(conn)
   .body <- upload_file(filepath)
   request$headers[["Accept"]] <- "*/*"
@@ -103,7 +103,7 @@ PUT_bo_document <- function(conn, filepath, filename, document_id) {
   request$headers[["Content-Type"]] <- "multipart/form-data"
   url <- paste0(request$url, "/v1/documents/", document_id)
   response <- PUT(url, body = list(y = .body), request)
-  report_api_error(request, response, paste(";PUT", filepath,filename,document_id), "PUT_bo_document", 94)
+  report_api_error(request, response, paste(";PUT", filepath,filename,document_id), "put_bo_document", 94)
 }
 
 #' Copy a Webi document
@@ -144,23 +144,23 @@ copyBODocument <- function(conn, document, parent_folder, destination_document_n
     }
 }
 
-DELETE_bo_document <- function(conn, document_id) {
+delete_bo_document <- function(conn, document_id) {
   request <- check_bo_connection(conn)
   url <- paste0(request$url, "/v1/documents/", document_id)
   response <- DELETE(url, request)
   report_api_error(request, response, paste(";DELETE",document_id), "delete_bo_document", 101)
 }
 
-GET_bo_document_controls <- function(conn, document) {
+get_bo_document_controls <- function(conn, document) {
   document_id <- get_bo_item_id(document)
-  GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = "")
+  get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = "")
 }
 
-GET_bo_document_control_selection <- function(conn, document, control_name) {
+get_bo_document_control_selection <- function(conn, document, control_name) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <-GET_bo_document_controls(conn, document)
+  inputcontrols <-get_bo_document_controls(conn, document)
   inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  result <- GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
+  result <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
 }
 
 #' Title
@@ -174,13 +174,13 @@ GET_bo_document_control_selection <- function(conn, document, control_name) {
 
 get_bo_document_control_selection_set <- function(conn, document, control_name = NULL) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <- GET_bo_document_controls(conn, document)
+  inputcontrols <- get_bo_document_controls(conn, document)
   if (!isNullOrEmpty(control_name)) {
       inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
   }
-  inputcontrol <- GET_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id)
+  inputcontrol <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id)
   dataobjectId <- inputcontrol$assignedDataObject$`@refId`
-  result <- GET_bo_raylight_endpoint(conn, documents = document_id, dataobjects = dataobjectId, lov = "")
+  result <- get_bo_raylight_endpoint(conn, documents = document_id, dataobjects = dataobjectId, lov = "")
   result$values
 }
 
@@ -196,12 +196,12 @@ get_bo_document_control_selection_set <- function(conn, document, control_name =
 #' @export
 set_bo_document_control_selection <- function(conn, document, control_name, selections, all) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <- GET_bo_raylight_endpoint(conn,documents = document_id, inputcontrols = "")
+  inputcontrols <- get_bo_raylight_endpoint(conn,documents = document_id, inputcontrols = "")
   inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
   v <- enframe(selections, name = NULL)
   l <- list(selection = list(value = list(selections)))
   b <- toJSON(l)
-  PUT_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "", body = l)
+  put_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "", body = l)
 }
 
 dateToBOQueryFilterDate <- function(d) {
@@ -227,20 +227,20 @@ queryFilterDateToDate <- function(d) {
 set_bo_document_data_source_date_range <- function(conn, document, dataprovider, startDate, endDate) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
-  dp <- GET_bo_raylight_endpoint(conn, documents=document_id, dataproviders='')
+  dp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders='')
   dp %>% dplyr::filter(name == dataprovider)
-  sdp <- GET_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id[1])
+  sdp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id[1])
   request$headers[['Accept']]<-'text/xml'
-  spc <- GET_bo_raylight_endpoint(request, documents=document_id, dataproviders=sdp$id, specification='')
+  spc <- get_bo_raylight_endpoint(request, documents=document_id, dataproviders=sdp$id, specification='')
   dates <- str_extract_all(spc, 'value="[0-9]{13}" type="Date"') %>% map(~str_extract(., pattern='[0-9]{13}')) %>% unlist()
   spc<-str_replace(spc, dates[1], dateToBOQueryFilterDate(startDate)) %>% str_replace(pattern = dates[2], replacement = dateToBOQueryFilterDate(endDate))
   request$headers[['Content-Type']]<-'text/xml'
   request$headers[['Accept']]<-'application/json'
-  PUT_bo_raylight_endpoint(request, documents=document_id, dataproviders=dp$id[1], specification='', body = spc)
+  put_bo_raylight_endpoint(request, documents=document_id, dataproviders=dp$id[1], specification='', body = spc)
 }
 
 refreshBODataProvider <- function(conn, document_id, dataSourceId) {
-  PUT_bo_raylight_endpoint(conn, documents = document_id, dataproviders = dataSourceId, parameters = '')
+  put_bo_raylight_endpoint(conn, documents = document_id, dataproviders = dataSourceId, parameters = '')
 }
 
 #' Title
@@ -253,7 +253,7 @@ refreshBODataProvider <- function(conn, document_id, dataSourceId) {
 #' @export
 refresh_bo_document <- function(conn, document, dataSourceType = NULL) {
   document_id <- get_bo_item_id(document)
-  dp <- GET_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '')
+  dp <- get_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '')
   if (!isNullOrEmpty(dataSourceType)) dp %<>% dplyr::filter(dataSourceType == dataSourceType)
   dp$id %>% sapply(function(x) refreshBODataProvider(conn, document_id, x))
 }

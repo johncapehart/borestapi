@@ -200,7 +200,7 @@ return_bo_response_content <- function(response) {
   }
 }
 
-GET_bo_raylight_endpoint <- function(conn, ..., querystring) {
+get_bo_raylight_endpoint <- function(conn, ..., querystring) {
   request <- check_bo_connection(conn)
   url <- paste_url(request$url, "raylight/v1", ...)
 
@@ -208,11 +208,11 @@ GET_bo_raylight_endpoint <- function(conn, ..., querystring) {
     url <- paste0(url, querystring)
   }
   response <- GET(url = url, request)
-  report_api_error(request, response, ";Children", "GET_bo_raylight_endpoint 197")
+  report_api_error(request, response, ";Children", "get_bo_raylight_endpoint 197")
   return_bo_response_content(response)
 }
 
-PUT_bo_raylight_endpoint <- function(conn, ..., querystring, body = NULL) {
+put_bo_raylight_endpoint <- function(conn, ..., querystring, body = NULL) {
   request <- check_bo_connection(conn)
   url <- paste_url(request$url, "raylight/v1", ...)
 
@@ -225,7 +225,7 @@ PUT_bo_raylight_endpoint <- function(conn, ..., querystring, body = NULL) {
     body <- body %>% toJSON()
   }
   response <- PUT(url = url, body = body, request)
-  report_api_error(request, response, ";Children", "PUT_bo_raylight_endpoint 214")
+  report_api_error(request, response, ";Children", "put_bo_raylight_endpoint 214")
   return_bo_response_content(response)
 }
 

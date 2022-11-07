@@ -27,14 +27,14 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
   mycat("Getting report data", report, "for document", document, ";get_bo_document_report 220")
   document_id = get_bo_item_id(document)
   report_name <- get_bo_report_name(report)
-  reports <- GET_bo_raylight_endpoint(conn, documents = document_id, reports = '')
+  reports <- get_bo_raylight_endpoint(conn, documents = document_id, reports = '')
   report <- reports %>%
     dplyr::filter(id == report | name == report_name) %>%
     tail(1)
   reportId <- report$id
   request <- check_bo_connection(conn)
   request$headers[["Accept"]] <- "text/csv"
-  result <- GET_bo_raylight_endpoint(request, documents = document_id, reports = reportId)
+  result <- get_bo_raylight_endpoint(request, documents = document_id, reports = reportId)
   dataset <- result %>% read_delim(delim = ";",show_col_types = FALSE, skip = skip)
   mycat("Report data retrieved", report_name, "for document", document, 'with', nrow(dataset), 'rows', ";get_bo_document_report 220")
   return(dataset)
@@ -53,15 +53,15 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
 get_bo_report_element_data <- function(conn, document, report, element) {
   mycat("Getting report", report, "for document", document, ";get_bo_document_report 33")
   document_id = get_bo_item_id(document)
-  reports <- GET_bo_raylight_endpoint(conn, documents = document_id, reports = '')
+  reports <- get_bo_raylight_endpoint(conn, documents = document_id, reports = '')
   report2 <- reports %>%
     dplyr::filter(id == report | name == report) %>%
     tail(1)
   reportId <- report2$id
-  elements <- GET_bo_raylight_endpoint(conn = conn, documents = document_id, reports = reportId, elements = '')
+  elements <- get_bo_raylight_endpoint(conn = conn, documents = document_id, reports = reportId, elements = '')
   elements %<>% dplyr::filter(id == element | name == element)
   elementId <- elements$id
-  dataset <- GET_bo_raylight_endpoint(conn, documents = document_id, reports = reportId, elements = elementId, dataset = '')
+  dataset <- get_bo_raylight_endpoint(conn, documents = document_id, reports = reportId, elements = elementId, dataset = '')
   names <- dataset$metadata$value[['$']]
   rows <- dataset$row$value %>% unlist()
   result <- tibble(value=rows, name=names) %>% pivot_wider()

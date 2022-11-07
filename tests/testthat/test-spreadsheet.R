@@ -11,7 +11,7 @@ test_that(paste("Cars dataframe uploads to BO"), {
   saveWorkbook(wb2, file, overwrite = TRUE)
 
   upload_bo_spreadsheet(conn, file, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
-  sheet2 <- GET_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+  sheet2 <- get_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
   expect_equal(sheet2$spreadsheet$sheets$sheet[[1]], "Cars")
   file.remove(file)
 })
@@ -19,7 +19,7 @@ test_that(paste("Cars dataframe uploads to BO"), {
 # test_that(paste("Delete test spreadsheet"), {
 #   file <- 'test.xlsx'
 #   conn<-open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
-#   sheet2 <- GET_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
-#   DELETE_bo_spreadsheet(conn,filename = file  , parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
-#   sheet2 <- GET_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+#   sheet2 <- get_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+#   delete_bo_spreadsheet(conn,filename = file  , parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+#   sheet2 <- get_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
 # })
