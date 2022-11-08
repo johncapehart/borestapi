@@ -9,6 +9,8 @@
 #' @param format HTTP body format to use
 #'
 #' @return Response content
+#'
+#' @noRd
 post_bo_spreadsheet_raw <- function(conn,  filepath, filename, parent_folder, format = 'json') {
   request <- check_bo_connection(conn)
   mimeType <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -33,7 +35,7 @@ post_bo_spreadsheet_raw <- function(conn,  filepath, filename, parent_folder, fo
   body = read_file_raw("body.txt")
   #url <- request$url <- http://localhost:8888' # for test capture by nc -kl 8888
   response <-POST(url, body = body, request)
-  report_api_error(request, response, paste("POST upload of file", filename, parent_folder), "post_bo_spreadsheet_raw", 51)
+  report_request_result(request, response, paste("POST upload of file", filename, parent_folder), "post_bo_spreadsheet_raw", 51)
   return(content(response))
 }
 
@@ -80,7 +82,7 @@ post_bo_spreadsheet <- function(conn,  filepath, filename, parent_folder, format
   if (file.exists(".attachmentInfos")) {
     file.remove(".attachmentInfos")
   }
-  report_api_error(request, response, paste("POST upload of file", filename, parent_folder), "post_bo_spreadsheet", 69)
+  report_request_result(request, response, paste("POST upload of file", filename, parent_folder), "post_bo_spreadsheet", 69)
   return(content(response))
 }
 
@@ -100,7 +102,7 @@ put_bo_spreadsheet <- function(conn, filepath, filename, sheet_id) {
         body = list(attachmentContent = .body),
         encode = "multipart",
         request)
-  report_api_error(
+  report_request_result(
     request,
     response,
     paste("PUT upload of file", filename, sheet_id),
@@ -120,13 +122,13 @@ put_bo_spreadsheet <- function(conn, filepath, filename, sheet_id) {
 #' @export
 get_bo_spreadsheet <- function(conn, filename, parent_folder) {
   request <- check_bo_connection(conn)
-  sheet <- get_bo_item_from_name(conn, filename, parent_folder = parent_folder, kind = "Excel")
+  sheet <- get_bo_item(conn, filename, parent_folder = parent_folder, kind = "Excel")
 
   request$headers = add_bo_headers(request$headers)
   if (nrow(sheet)) {
     url <- paste0(request$url, "/raylight/v1/spreadsheets/", sheet$SI_ID)
     response <- GET(url, request)
-    report_api_error( request, response, paste("GET file", filename, sheet$SI_ID), "get_bo_spreadsheet", 100)
+    report_request_result( request, response, paste("GET file", filename, sheet$SI_ID), "get_bo_spreadsheet", 100)
     content(response)
   }
 }
@@ -141,13 +143,13 @@ get_bo_spreadsheet <- function(conn, filename, parent_folder) {
 #' @export
 delete_bo_spreadsheet <- function(conn, filename, parent_folder) {
   request <- check_bo_connection(conn)
-  sheet <- get_bo_item_from_name(conn, filename, parent_folder = parent_folder, kind = "Excel")
+  sheet <- get_bo_item(conn, filename, parent_folder = parent_folder, kind = "Excel")
 
   request$headers = add_bo_headers(request$headers)
   if (nrow(sheet) == 1) {
     url <- paste0(request$url, "/raylight/v1/spreadsheets/", sheet$SI_ID)
     response <- DELETE(url, request)
-    report_api_error( request, response, paste("DELETE file", filename, sheet$SI_ID), "delete_bo_spreadsheet", 138)
+    report_request_result( request, response, paste("DELETE file", filename, sheet$SI_ID), "delete_bo_spreadsheet", 138)
     content(response)
   }
 }
@@ -164,7 +166,7 @@ delete_bo_spreadsheet <- function(conn, filename, parent_folder) {
 upload_bo_spreadsheet <- function(conn, filepath, filename, parent_folder) {
   request <- check_bo_connection(conn)
   mycat(";Upload excel file",  filename, ";upload_bo_spreadsheet 141", duration = 60)
-  sheet <- get_bo_item_from_name(conn, filename, parent_folder = parent_folder, kind = "Excel")
+  sheet <- get_bo_item(conn, filename, parent_folder = parent_folder, kind = "Excel")
   if (nrow(sheet)) {
     sheet <- put_bo_spreadsheet(conn, filepath, filename, sheet_id = sheet$SI_ID)
   } else {

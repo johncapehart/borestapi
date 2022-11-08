@@ -16,6 +16,8 @@ init_log <- function() {
   flog.appender(appender.console(), name='console')
   flog.layout(layout.simple, name='console')
   logger_ready <- TRUE
+  futile.logger::flog.threshold('WARN')
+  cat("log level",futile.logger::flog.threshold())
 }
 
 logg <- function(loggername, level, s) {

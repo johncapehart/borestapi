@@ -7,9 +7,9 @@
 get_bo_document_report(conn, document, report, skip = 0)
 }
 \arguments{
-\item{conn}{Connection reference}
+\item{conn}{Connection reference obtained from open_bo_connection}
 
-\item{document}{Document as numeric id or tibble of properties}
+\item{document}{Document as numeric id or tibble of properties obtained from get_bo_item_from_name}
 
 \item{report}{Name of report tab in document}
 

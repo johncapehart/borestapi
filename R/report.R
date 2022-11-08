@@ -14,8 +14,8 @@ get_bo_report_name <- function(report) {
 
 #' Get data from a BO document report tab
 #'
-#' @param conn Connection reference
-#' @param document Document as numeric id or tibble of properties
+#' @param conn Connection reference obtained from open_bo_connection
+#' @param document Document as numeric id or tibble of properties obtained from get_bo_item_from_name
 #' @param report Name of report tab in document
 #' @param skip Rows of data to skip before header in the case where the report tab in business objects
 #' has text lines before the data
@@ -36,7 +36,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
   request$headers[["Accept"]] <- "text/csv"
   result <- get_bo_raylight_endpoint(request, documents = document_id, reports = reportId)
   dataset <- result %>% read_delim(delim = ";",show_col_types = FALSE, skip = skip)
-  mycat("Report data retrieved", report_name, "for document", document, 'with', nrow(dataset), 'rows', ";get_bo_document_report 220")
+  mycat(nrow(dataset), "rows retrieved from report", report_name, "in document", document, ";get_bo_document_report 220")
   return(dataset)
 }
 

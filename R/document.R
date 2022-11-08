@@ -4,7 +4,6 @@
 #' @include api-utils.R
 #'
 
-
 testNumericArgument <- function(x) {
   quietly(function(x)!is.na(as.numeric(x)))(x)$result
 }
@@ -17,7 +16,7 @@ testNumericArgument <- function(x) {
 #' @param provider_id Numeric id of the provider
 #' @param ... Parameters for read_delim
 #'
-#' @return Tible of data
+#' @return Tibble of data
 #' @export
 get_bo_document_data <- function(conn, document, provider_id, ...) {
   request <- check_bo_connection(conn)
@@ -26,7 +25,7 @@ get_bo_document_data <- function(conn, document, provider_id, ...) {
   url <- paste(url, provider_id, "flows/0", sep = "/")
   response <- GET(url = url, request)
   df <- content(response, as = "text", encoding = "UTF-8") %>% read_delim(delim = ";", show_col_types = FALSE, ...)
-  report_api_error(request, response, paste("Get document data rows", nrow(df), "columns", ncol(df)), "get_bo_documentData", 246)
+  report_request_result(request, response, paste("Get document data rows", nrow(df), "columns", ncol(df)), "get_bo_document_data", 246)
   df
 }
 
@@ -43,7 +42,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
   document_id <- get_bo_item_id(document)
   url <- paste(request$url, "raylight/v1/documents", document_id, "occurrences", sep = "/")
   response <- GET(url, request)
-  report_api_error(request, response, paste(";GET occurances", document_id), "close_bo_document", 55)
+  report_request_result(request, response, paste(";GET occurances", document_id), "close_bo_document", 55)
   occurrance <- content(response)$occurrences$occurrence
   if (length(occurrance) == 0) {
     mycat("No occurences to close for", document_id)
@@ -61,7 +60,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
       body <- list("occurrence" = list(state = 'Unused')) %>% listToJSON()
     }
     response <- PUT(url, body = body, request)
-    report_api_error(request, response, paste("Closing document", document$SI_Name, ";PUT occurance", occurrance[['state']]), "close_bo_document", 71)
+    report_request_result(request, response, paste("Closing document", document$SI_Name, ";PUT occurance", occurrance[['state']]), "close_bo_document", 71)
     return_bo_response_content(response)
   }
 }
@@ -75,6 +74,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
 #'
 #' @return Response content
 #' @export
+#' @noRd
 post_bo_document <- function(conn, filepath, filename, parent_folder) {
   request <- check_bo_connection(conn)
   .body <- upload_file(filepath)
@@ -83,7 +83,7 @@ post_bo_document <- function(conn, filepath, filename, parent_folder) {
   request$headers[["Content-Type"]] <- "multipart/form-data"
   url <- paste0(request$url, "/infostore/folder/", parent_folder, "/file")
   response <- POST(url, body = list(y = .body), request)
-  report_api_error(request, response, paste(";POST", filepath,filename), "post_bo_document", 83)
+  report_request_result(request, response, paste(";POST", filepath,filename), "post_bo_document", 83)
 }
 
 #' Upload an existing BO Webi document
@@ -95,6 +95,7 @@ post_bo_document <- function(conn, filepath, filename, parent_folder) {
 #'
 #' @return Response content
 #' @export
+#' @noRd
 put_bo_document <- function(conn, filepath, filename, document_id) {
   request <- check_bo_connection(conn)
   .body <- upload_file(filepath)
@@ -103,7 +104,7 @@ put_bo_document <- function(conn, filepath, filename, document_id) {
   request$headers[["Content-Type"]] <- "multipart/form-data"
   url <- paste0(request$url, "/v1/documents/", document_id)
   response <- PUT(url, body = list(y = .body), request)
-  report_api_error(request, response, paste(";PUT", filepath,filename,document_id), "put_bo_document", 94)
+  report_request_result(request, response, paste(";PUT", filepath,filename,document_id), "put_bo_document", 94)
 }
 
 #' Copy a Webi document
@@ -115,6 +116,7 @@ put_bo_document <- function(conn, filepath, filename, document_id) {
 #'
 #' @return Response content
 #' @export
+#' @noRd
 copyBODocument <- function(conn, document, parent_folder, destination_document_name) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
@@ -132,7 +134,7 @@ copyBODocument <- function(conn, document, parent_folder, destination_document_n
         encode = "json",
         request
       )
-    report_api_error(
+    report_request_result(
       request,
       response,
       paste("POST copy file", document_id, "copyBODocument line 139")
@@ -148,7 +150,7 @@ delete_bo_document <- function(conn, document_id) {
   request <- check_bo_connection(conn)
   url <- paste0(request$url, "/v1/documents/", document_id)
   response <- DELETE(url, request)
-  report_api_error(request, response, paste(";DELETE",document_id), "delete_bo_document", 101)
+  report_request_result(request, response, paste(";DELETE",document_id), "delete_bo_document", 101)
 }
 
 get_bo_document_controls <- function(conn, document) {
@@ -171,7 +173,7 @@ get_bo_document_control_selection <- function(conn, document, control_name) {
 #'
 #' @return Control selection set as tibble
 #' @export
-
+#' @noRd
 get_bo_document_control_selection_set <- function(conn, document, control_name = NULL) {
   document_id <- get_bo_item_id(document)
   inputcontrols <- get_bo_document_controls(conn, document)
@@ -194,6 +196,7 @@ get_bo_document_control_selection_set <- function(conn, document, control_name =
 #'
 #' @return Response content
 #' @export
+#' @noRd
 set_bo_document_control_selection <- function(conn, document, control_name, selections, all) {
   document_id <- get_bo_item_id(document)
   inputcontrols <- get_bo_raylight_endpoint(conn,documents = document_id, inputcontrols = "")
@@ -223,7 +226,7 @@ queryFilterDateToDate <- function(d) {
 #'
 #' @return Response content
 #' @export
-#'
+#' @noRd
 set_bo_document_data_source_date_range <- function(conn, document, dataprovider, startDate, endDate) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
@@ -273,7 +276,7 @@ get_bo_document <- function(conn, document) {
   response <- GET(url, request)
   mycat("get_bo_document 249", ifelse(response$status_code == 200, paste("Get succeeded to", url), paste("Get failed", response$status_code, content(response))))
   document <- content(response)
-  report_api_error(request, response, paste("GET document", document_id), "get_bo_document", 337)
+  report_request_result(request, response, paste("GET document", document_id), "get_bo_document", 337)
   document
 }
 

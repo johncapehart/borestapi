@@ -4,8 +4,12 @@ Version: 0.0.0.9000
 Authors@R: 
     person("John", "Capehart", , "R@jcapehart.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: This package imports and exports data to SAP Business Objects.
-    It fetches data from SAP Business Objects reports. It pushes excel files to SAP Business Objects local files.
+Description: An R interface to the SAP Business Objects REST API.
+    Use it to:
+        Retrieve data from Business Object document report tabs.
+        Upload Excel spreadsheets to Business Objects
+        Retrieve data from a Busines Objects document data source
+        Set document filters and refresh document data
 License: MIT + file LICENSE
 Imports:
     digest,

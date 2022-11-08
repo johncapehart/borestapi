@@ -2,7 +2,7 @@
 % Please edit documentation in R/connect.R
 \name{open_bo_connection}
 \alias{open_bo_connection}
-\title{Open a connection to a BO server}
+\title{Open a connection to a BO server. You can}
 \usage{
 open_bo_connection(
   server = Sys.getenv("BO_SERVER"),
@@ -12,11 +12,11 @@ open_bo_connection(
 )
 }
 \arguments{
-\item{server}{Server to connect to "server:port"}
+\item{server}{Server to connect to "server:port". Defaults BO_SERVER environment variable}
 
-\item{username}{(optional)}
+\item{username}{(optional). Defaults to "BO_USERNAME environment variable}
 
-\item{password}{(optional)}
+\item{password}{(optional). Use getPass() to enter value}
 
 \item{conn}{Connection reference to reuse (optional)}
 }
@@ -24,5 +24,12 @@ open_bo_connection(
 Connection reference
 }
 \description{
-Open a connection to a BO server
+Open a connection to a BO server. You can
+}
+\examples{
+# open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME". and password in a
+# keyring at "BO_KEYRING_FILE_PATH"
+open_bo_connection()
+# open a connection to a server using username and password
+open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
 }

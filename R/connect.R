@@ -28,28 +28,36 @@ listToJSON <- function(list) {
     gsub("(\\[|])", "", .)
 }
 
+#' Get user rights on the BO server
+#'
+#' @param conn connection reference
+#'
+#' @return Response content or NULL
+#' @export
+get_user_rights <- function(conn) {
+  # a POST query of item SI_ID = 1 is the test of a token
+  httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate check
+  url = paste0(conn$request$url, '/raylight/v1/session/rights')
+  response <- GET(url, conn$request)
+  if (response$status_code == 200) {
+    return(content(response))
+  }
+  return(NULL)
+}
+
 #' Check to see if an SAP access token is still valid
 #'
 #' @param conn connection reference
 #' @param server Server name and port to connect to
 #'
 #' @return TRUE if connection is valid, FALSE otherwise
+#' @export
 #' @noRd
 check_bo_connection_state <- function(conn, server) {
   if (hasArg("conn") && !is.null(conn) && !is.null(conn$request)) {
-    request <- conn$request # request is the mutable object referred to by the reference
-    if (server == request$headers[["Host"]] && !is.null(request$url)) {
-      # a POST query of item SI_ID = 1 is the test of a token
-      httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate check
-      body <- '{"query" = "SELECT SI_ID FROM CI_INFOOBJECTS WHERE SI_ID=1"}'
-      url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
-      response <- POST(url = url, body = body, request)
-      if (response$status_code != 401) {
-        mycat("POST Test of connection succeeded", url, response$status_code, content(response, as = "text", encoding = "UTF-8"), ";testBORequest line 149")
-        return(TRUE)
-      } else {
-        mycat("POST Test of connection failed", url, response$status_codell, ";testBORequest line 161")
-      }
+    if (server == conn$request$headers[["Host"]] && !is.null(conn$request$url)) {
+      rights <- get_user_rights(conn)
+      return(!is_empty(rights))
     }
   }
   return(FALSE)
@@ -58,8 +66,10 @@ check_bo_connection_state <- function(conn, server) {
 try_token <- function(conn, server, token) {
   cat(";Trying token from database (2)", token)
   result <- tryCatch({
+      # this sets the token in the mutable connection
       conn$request$headers[["X-SAP-LogonToken"]] <- token
       check_bo_connection_state(conn = conn, server = server)
+      # TODO:remove the token header
     }, error = function(cond) {
       FALSE
   })
@@ -119,7 +129,7 @@ get_new_token <- function(conn, server, username, password = NULL) {
   ) %>% listToJSON()
   url <- paste0(conn$request$url, "/v1/logon/long") # append longon endpoint to url
   response <- POST(url = url, body = body, conn$request)
-  report_api_error(conn$request, response, "New connection", "open_bo_connection line 146")
+  report_request_result(conn$request, response, "New connection", "open_bo_connection line 146")
   token <- content(response)$logontoken
   if (!is.null(token) && str_length(token) > 0) {
     conn$request$headers[["X-SAP-LogonToken"]] <- token
@@ -134,25 +144,10 @@ get_new_token <- function(conn, server, username, password = NULL) {
 
 # connection management ----------------------------------------------------------------
 
-#' Open a connection to a BO server
-#'
-#' @param server Server to connect to "server:port"
-#' @param conn Connection reference to reuse (optional)
-#' @param username (optional)
-#' @param password (optional)
-#' @return Connection reference
-#' @export
-open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
-           username = Sys.getenv("BO_USERNAME"),
-           password = NULL,
-           conn = NULL) {
-  if (check_bo_connection_state(conn = conn, server = server)) {
-    return(conn)
-  }
+get_new_request <- function(conn, server) {
   if (!hasArg("conn") || is.null(conn)) {
     conn <- new_bo_request_reference() # make a new empty request reference
   }
-  httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate checks
   # set request headers
   conn$request <-
     add_headers("Accept" = "application/json",
@@ -160,11 +155,35 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
                 "Host" = server)
   # set base url
   conn$request$url <- paste0("https://", server, "/biprws")
-  username <- Sys.getenv("BO_USERNAME")
+  conn
+}
+#' Open a connection to a BO server. You can
+#'
+#' @param server Server to connect to "server:port". Defaults BO_SERVER environment variable
+#' @param conn Connection reference to reuse (optional)
+#' @param username (optional). Defaults to "BO_USERNAME environment variable
+#' @param password (optional). Use getPass() to enter value
+#' @return Connection reference
+#' @examples
+#' # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME". and password in a
+#' # keyring at "BO_KEYRING_FILE_PATH"
+#' open_bo_connection()
+#' # open a connection to a server using username and password
+#' open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
+#' @export
+open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
+           username = Sys.getenv("BO_USERNAME"),
+           password = NULL,
+           conn = NULL) {
+  httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate checks
+  # reset request
+  conn <- get_new_request(conn, server)
   if (get_cached_token(conn, server, username)) {
     # search for valid token matching server and username
     return(conn)
   }
+  # reset request
+  conn <- get_new_request(conn, server)
   if (get_new_token(conn, server, username, password)) {
     return(conn)
   }
@@ -181,6 +200,6 @@ close_bo_connection <- function(conn) {
   request <- check_bo_connection(conn)
   url <- paste0(conn$request$url, "/logoff")
   response <- POST(url = url, request = request)
-  report_api_error(request, response, ";Disconnect", "logOffBOSession line 129")
+  report_request_result(request, response, ";Disconnect", "logOffBOSession line 129")
   conn
 }

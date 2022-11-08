@@ -14,6 +14,7 @@ get_keyring_password <- function() {
 #' Delete the keyring
 #'
 #' @export
+#' @noRd
 clear_keyring <- function() {
   mycat(paste("Removing keyring at", get_keyring_path()), "clear_keyring line 41")
   file.remove(get_keyring_path())

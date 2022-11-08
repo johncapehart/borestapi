@@ -17,7 +17,7 @@ get_bo_document_data(conn, document, provider_id, ...)
 \item{...}{Parameters for read_delim}
 }
 \value{
-Tible of data
+Tibble of data
 }
 \description{
 Get data directly from a document data provider
