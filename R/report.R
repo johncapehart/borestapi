@@ -13,12 +13,15 @@ get_bo_report_name <- function(report) {
 }
 
 #' Get data from a BO document report tab
-#'
+#' @description Use get_bo_document_report to get data from a tab in a BO document. Be sure to save the report
+#' after refreshing data in BO
+#' @details
+#' Depending on the layout of the report tab you may need to skip rows in the output to get to the data
+#' The data returned is the table as it was last saved in BO
 #' @param conn Connection reference obtained from open_bo_connection
 #' @param document Document as numeric id or tibble of properties obtained from get_bo_item_from_name
 #' @param report Name of report tab in document
-#' @param skip Rows of data to skip before header in the case where the report tab in business objects
-#' has text lines before the data
+#' @param skip Rows of data to skip before header
 #'
 #' @return Tibble of report data
 #' @export
@@ -32,9 +35,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
     dplyr::filter(id == report | name == report_name) %>%
     tail(1)
   reportId <- report$id
-  request <- check_bo_connection(conn)
-  request$headers[["Accept"]] <- "text/csv"
-  result <- get_bo_raylight_endpoint(request, documents = document_id, reports = reportId)
+  result <- get_bo_raylight_endpoint(conn, documents = document_id, reports = reportId, accept='text/csv')
   dataset <- result %>% read_delim(delim = ";",show_col_types = FALSE, skip = skip)
   mycat(nrow(dataset), "rows retrieved from report", report_name, "in document", document, ";get_bo_document_report 220")
   return(dataset)
@@ -49,7 +50,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
 #'
 #' @return tibble with data from report element
 #' @export
-#'
+#' @noRd
 get_bo_report_element_data <- function(conn, document, report, element) {
   mycat("Getting report", report, "for document", document, ";get_bo_document_report 33")
   document_id = get_bo_item_id(document)

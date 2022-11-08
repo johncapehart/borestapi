@@ -154,12 +154,15 @@ return_bo_response_content <- function(response) {
   }
 }
 
-get_bo_raylight_endpoint <- function(conn, ..., querystring) {
+get_bo_raylight_endpoint <- function(conn, ..., querystring, accept=NULL) {
   request <- check_bo_connection(conn)
   url <- paste_url(request$url, "raylight/v1", ...)
 
   if (!isNullOrEmpty(querystring)) {
     url <- paste0(url, querystring)
+  }
+  if (!is_empty(accept)) {
+    request$headers[['Accept']]=accept
   }
   response <- GET(url = url, request)
   report_request_result(request, response, ";Children", "get_bo_raylight_endpoint 197")

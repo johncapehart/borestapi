@@ -13,12 +13,16 @@ get_bo_document_report(conn, document, report, skip = 0)
 
 \item{report}{Name of report tab in document}
 
-\item{skip}{Rows of data to skip before header in the case where the report tab in business objects
-has text lines before the data}
+\item{skip}{Rows of data to skip before header}
 }
 \value{
 Tibble of report data
 }
 \description{
-Get data from a BO document report tab
+Use get_bo_document_report to get data from a tab in a BO document. Be sure to save the report
+after refreshing data in BO
+}
+\details{
+Depending on the layout of the report tab you may need to skip rows in the output to get to the data
+The data returned is the table as it was last saved in BO
 }

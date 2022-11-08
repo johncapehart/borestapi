@@ -2,7 +2,7 @@
 % Please edit documentation in R/connect.R
 \name{close_bo_connection}
 \alias{close_bo_connection}
-\title{Close connectionto BO server}
+\title{Close connection to the BO server}
 \usage{
 close_bo_connection(conn)
 }
@@ -13,5 +13,9 @@ close_bo_connection(conn)
 Connection reference
 }
 \description{
-Close connectionto BO server
+Closes connection to the BO server.
+}
+\details{
+As connection tokens are cached an reused to prevent flooding the BO
+server with processes, it's not mandatory to call this.
 }

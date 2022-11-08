@@ -24,7 +24,7 @@ post_bo_spreadsheet_raw <- function(conn,  filepath, filename, parent_folder, fo
   fileData <- readBin(filepath, "raw")
   con = file("body.txt", "wb")
   writeBin(paste0(boundary2, "\r\n", "Content-Disposition: form-data; name=\"attachmentInfos\"\r\nContent-Type: application/json\r\n\r\n",
-                  '{"spreadsheet":{"name":"',filename,'","folder_id":',parent_folder,'}}\r\n',
+                  '{"spreadsheet":{"name":"',filename,'","folderid":',parent_folder,'}}\r\n',
                   boundary2,"\r\n",
                   "Content-Disposition: form-data; name=\"attachmentContent\"\r\n",
                   "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n\r\n"), con=con)
@@ -42,7 +42,7 @@ post_bo_spreadsheet_raw <- function(conn,  filepath, filename, parent_folder, fo
 get_bo_spreadsheet_attachmentInfos <- function(filename, parent_folder, format = 'json') {
   #filename = gsub('.xlsx','',filename)
   if (format == 'json') {
-    json <- list("spreadsheet" = list("name" = filename, "folder_id" = parent_folder)) %>% listToJSON()
+    json <- list("spreadsheet" = list("name" = filename, "folderId" = parent_folder)) %>% listToJSON()
     write(json, ".attachmentInfos")
     .body0 <-
       upload_file(".attachmentInfos", type = "application/json")
@@ -51,9 +51,9 @@ get_bo_spreadsheet_attachmentInfos <- function(filename, parent_folder, format =
       paste0(
         '<spreadsheet><name>',
         filename,
-        '</name><folder_id>',
+        '</name><folderId>',
         parent_folder,
-        '</folder_id></spreadsheet>'
+        '</folderId></spreadsheet>'
       )
     write(xml, ".attachmentInfos")
     .body0 <- upload_file(".attachmentInfos", type = "application/xml")

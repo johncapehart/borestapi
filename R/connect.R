@@ -53,12 +53,10 @@ get_user_rights <- function(conn) {
 #' @return TRUE if connection is valid, FALSE otherwise
 #' @export
 #' @noRd
-check_bo_connection_state <- function(conn, server) {
+check_bo_connection_state <- function(conn) {
   if (hasArg("conn") && !is.null(conn) && !is.null(conn$request)) {
-    if (server == conn$request$headers[["Host"]] && !is.null(conn$request$url)) {
-      rights <- get_user_rights(conn)
-      return(!is_empty(rights))
-    }
+    rights <- get_user_rights(conn)
+    return(!is_empty(rights))
   }
   return(FALSE)
 }
@@ -68,22 +66,27 @@ try_token <- function(conn, server, token) {
   result <- tryCatch({
       # this sets the token in the mutable connection
       conn$request$headers[["X-SAP-LogonToken"]] <- token
-      check_bo_connection_state(conn = conn, server = server)
-      # TODO:remove the token header
+      check_bo_connection_state(conn = conn)
     }, error = function(cond) {
       FALSE
   })
+  if (!result) {
+    # remove the token header since it failed the check
+    conn$request$headers <- conn$request$headers[!names(conn$request$headers)%in% c("X-SAP-LogonToken")]
+  }
   return(result)
 }
 
-check_bo_connection <- function(conn, server=Sys.getenv("BO_SERVER")) {
+check_bo_connection <- function(conn) {
   if (rlang::is_empty(conn)) {
-    conn <- open_bo_connection(server)
+    mycat("Empty connection reference",";check_bo_connection 83", level = "ERROR")
   }
   if (class(conn) == "request_reference_class") {
-    return(conn$request)
-  } else {
-    return(conn)
+    if (check_bo_connection_state(conn)) {
+      return(conn$request)
+    } else {
+      open_bo_connection(conn=conn)
+    }
   }
 }
 
@@ -100,7 +103,7 @@ get_cached_token <- function(conn, server, username) {
   if (!is.null(tokens) && length(tokens) > 0) {
     for (i in 1:length(tokens)) {
       token <- tokens[i]
-      if (try_token(conn = conn, server = server, token = token)) {
+      if (try_token(conn = conn, server=server, token = token)) {
         mycat('Using token', conn$request$headers[["X-SAP-LogonToken"]])
         mycat("reusing token ================================================================")
         return(TRUE)
@@ -115,11 +118,6 @@ get_cached_token <- function(conn, server, username) {
 }
 
 get_new_token <- function(conn, server, username, password = NULL) {
-  # get password from keyring
-  keyring_entry <- 'business objects password'
-  if (is_empty(password)) {
-    password <- get_keyring_secret(keyring_entry)
-  }
   # get request body as json
   body <- list(
     "clienttype" = "my_BI_Application",
@@ -144,7 +142,7 @@ get_new_token <- function(conn, server, username, password = NULL) {
 
 # connection management ----------------------------------------------------------------
 
-get_new_request <- function(conn, server) {
+get_new_request <- function(conn, server, username) {
   if (!hasArg("conn") || is.null(conn)) {
     conn <- new_bo_request_reference() # make a new empty request reference
   }
@@ -152,17 +150,18 @@ get_new_request <- function(conn, server) {
   conn$request <-
     add_headers("Accept" = "application/json",
                 "Content-Type" = "application/json",
-                "Host" = server)
+                "Host" = server,
+                "From" = username)
   # set base url
   conn$request$url <- paste0("https://", server, "/biprws")
   conn
 }
-#' Open a connection to a BO server. You can
+#' Open a connection to a BO server. You can keep parameers in environment variables
 #'
-#' @param server Server to connect to "server:port". Defaults BO_SERVER environment variable
-#' @param conn Connection reference to reuse (optional)
+#' @param server Server to connect to "server:port" (optional). Defaults BO_SERVER environment variable
 #' @param username (optional). Defaults to "BO_USERNAME environment variable
 #' @param password (optional). Use getPass() to enter value
+#' @param conn Connection reference to reuse (optional)
 #' @return Connection reference
 #' @examples
 #' # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME". and password in a
@@ -172,26 +171,62 @@ get_new_request <- function(conn, server) {
 #' open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
 #' @export
 open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
-           username = Sys.getenv("BO_USERNAME"),
-           password = NULL,
-           conn = NULL) {
+                               username = NULL,
+                               password = NULL,
+                               conn = NULL) {
+  if (!is_empty(conn)) {
+    if (check_bo_connection_state(conn)) {
+      return(conn)
+    } else {
+      if (is_empty(server)) {
+        server <- conn$request$headers[['Host']]
+      }
+      if (is_empty(username)) {
+        username <- conn$request$headers[['From']]
+      }
+      if (is_empty(password)) {
+        passwordfrom <- conn$request$passwordfrom;
+      }
+    }
+  } else {
+    conn <- get_new_request(conn, server, username)
+  }
   httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate checks
   # reset request
-  conn <- get_new_request(conn, server)
+  if (is_empty(username)) {
+    username <- Sys.getenv("BO_USERNAME")
+    if (!exists('passwordfrom') || is_empty(passwordfrom)) {
+      passwordfrom <- 'keyring'
+    }
+  }
   if (get_cached_token(conn, server, username)) {
     # search for valid token matching server and username
     return(conn)
   }
-  # reset request
-  conn <- get_new_request(conn, server)
+  if (is_empty(password)) {
+    if (exists('passwordfrom') && !is_empty(passwordfrom)) {
+      if (typeof(passwordfrom)== 'closure') {
+        mycat("Getting password from closure;open_bo_connection line 205")
+        password <- (passwordfrom)()
+      } else if (passwordfrom == 'user') {
+        mycat("Password required", ";open_bo_connection line 208", level=ERROR)
+      } else if (passwordfrom == 'keyring') {
+        password <- get_keyring_secret('Password for Business Objects')
+      }
+    }
+  }
   if (get_new_token(conn, server, username, password)) {
-    return(conn)
+     return(conn)
   }
   stop("open_bo_connectin failed")
 }
 
-#' Close connectionto BO server
-#'
+#' Close connection to the BO server
+#' @description
+#' Closes connection to the BO server.
+#' @details
+#' As connection tokens are cached an reused to prevent flooding the BO
+#' server with processes, it's not mandatory to call this.
 #' @param conn Connection reference to close
 #'
 #' @return Connection reference
