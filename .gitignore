@@ -4,7 +4,6 @@
 .Rdata
 .httr-oauth
 .DS_Store
-renv/
 *.xlsx
 test.R
 .Rd2*
