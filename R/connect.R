@@ -5,7 +5,6 @@
 #' @importFrom magrittr %<>% %>%
 #' @importFrom httr GET POST PUT DELETE add_headers upload_file content config
 #' @importFrom jsonlite toJSON fromJSON
-#' @importFrom RSQLite dbConnect dbDisconnect dbExecute dbListTables dbReadTable dbWriteTable dbAppendTable
 #' @include api-utils.R
 #'
 # prerequisites ----------------------------------------------------------------
@@ -61,6 +60,10 @@ check_bo_connection_state <- function(conn) {
   return(FALSE)
 }
 
+clear_token_header <- function(conn) {
+  conn$request$headers <- conn$request$headers[!names(conn$request$headers)%in% c("X-SAP-LogonToken")]
+}
+
 try_token <- function(conn, server, token) {
   cat(";Trying token from database (2)", token)
   result <- tryCatch({
@@ -71,8 +74,7 @@ try_token <- function(conn, server, token) {
       FALSE
   })
   if (!result) {
-    # remove the token header since it failed the check
-    conn$request$headers <- conn$request$headers[!names(conn$request$headers)%in% c("X-SAP-LogonToken")]
+    clear_token_header(conn)
   }
   return(result)
 }
@@ -85,9 +87,12 @@ check_bo_connection <- function(conn) {
     if (check_bo_connection_state(conn)) {
       return(conn$request)
     } else {
+      # reopen the connection using conn$request$username and conn$request$user_password
       open_bo_connection(conn=conn)
+      return(conn$request)
     }
   }
+  stop(paste("check_bo_connection failed"))
 }
 
 #' Find a valid token matching server and username
@@ -171,22 +176,12 @@ get_new_request <- function(conn, server, username) {
 #' open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
 #' @export
 open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
-                               username = NULL,
+                               username = Sys.getenv("BO_USERNAME"),
                                password = NULL,
                                conn = NULL) {
   if (!is_empty(conn)) {
     if (check_bo_connection_state(conn)) {
       return(conn)
-    } else {
-      if (is_empty(server)) {
-        server <- conn$request$headers[['Host']]
-      }
-      if (is_empty(username)) {
-        username <- conn$request$headers[['From']]
-      }
-      if (is_empty(password)) {
-        passwordfrom <- conn$request$passwordfrom;
-      }
     }
   } else {
     conn <- get_new_request(conn, server, username)
@@ -194,31 +189,37 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
   httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate checks
   # reset request
   if (is_empty(username)) {
-    username <- Sys.getenv("BO_USERNAME")
-    if (!exists('passwordfrom') || is_empty(passwordfrom)) {
-      passwordfrom <- 'keyring'
+    if (!is_null_or_empty(conn$request$username)) {
+      username <- conn$request$username
     }
   }
   if (get_cached_token(conn, server, username)) {
     # search for valid token matching server and username
     return(conn)
   }
+  from_keyring <- FALSE
   if (is_empty(password)) {
-    if (exists('passwordfrom') && !is_empty(passwordfrom)) {
-      if (typeof(passwordfrom)== 'closure') {
-        mycat("Getting password from closure;open_bo_connection line 205")
-        password <- (passwordfrom)()
-      } else if (passwordfrom == 'user') {
-        mycat("Password required", ";open_bo_connection line 208", level=ERROR)
-      } else if (passwordfrom == 'keyring') {
-        password <- get_keyring_secret('Password for Business Objects')
-      }
+    if (!is_null_or_empty(conn$request$user_password)) {
+      password = decrypt_string(conn$request$user_password)
+    } else {
+      from_keyring <- TRUE
+      password <- get_keyring_secret(username)
     }
   }
   if (get_new_token(conn, server, username, password)) {
-     return(conn)
+    conn$request$username <- username
+    conn$request$user_password <- encrypt_string(password)
+    # if password is not from the keyring check keyring for existing password
+    if (!from_keyring) {
+      stored_password <- get_keyring_secret(username)
+      if (!is.null(stored_password) && stored_password != password) {
+        mycat("Updating keyring password for ", username, ";open_bo_connection line 208")
+        set_keyring_secret(username, password)
+      }
+    }
+    return(conn)
   }
-  stop("open_bo_connectin failed")
+  stop("open_bo_connection failed")
 }
 
 #' Close connection to the BO server

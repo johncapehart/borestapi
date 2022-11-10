@@ -1,7 +1,7 @@
 test_that(paste("password is saved at", 'business objects password'), {
-  print(get_keyring_password())
+  print(get_keyring_file_password())
   print(Sys.getenv('USER'))
-  secret <- get_keyring_secret('business objects password')
+  secret <- get_keyring_secret(Sys.getenv("BO_USERNAME"))
   expect_gt(str_length(secret), 0)
 })
 

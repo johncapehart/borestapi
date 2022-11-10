@@ -158,7 +158,7 @@ get_bo_raylight_endpoint <- function(conn, ..., querystring, accept=NULL) {
   request <- check_bo_connection(conn)
   url <- paste_url(request$url, "raylight/v1", ...)
 
-  if (!isNullOrEmpty(querystring)) {
+  if (!is_null_or_empty(querystring)) {
     url <- paste0(url, querystring)
   }
   if (!is_empty(accept)) {
@@ -173,7 +173,7 @@ put_bo_raylight_endpoint <- function(conn, ..., querystring, body = NULL) {
   request <- check_bo_connection(conn)
   url <- paste_url(request$url, "raylight/v1", ...)
 
-  if (!isNullOrEmpty(querystring)) {
+  if (!is_null_or_empty(querystring)) {
     url <- paste0(url, querystring)
   }
   if (!is.null(body) &&

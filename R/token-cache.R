@@ -1,3 +1,5 @@
+#' @importFrom RSQLite dbConnect dbDisconnect dbExecute dbListTables dbReadTable dbWriteTable dbAppendTable
+
 # token caching ----------------------------------------------------------------
 
 get_bo_token_database_path <- function() {

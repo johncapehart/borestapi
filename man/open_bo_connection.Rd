@@ -6,7 +6,7 @@
 \usage{
 open_bo_connection(
   server = Sys.getenv("BO_SERVER"),
-  username = NULL,
+  username = Sys.getenv("BO_USERNAME"),
   password = NULL,
   conn = NULL
 )

@@ -177,7 +177,7 @@ get_bo_document_control_selection <- function(conn, document, control_name) {
 get_bo_document_control_selection_set <- function(conn, document, control_name = NULL) {
   document_id <- get_bo_item_id(document)
   inputcontrols <- get_bo_document_controls(conn, document)
-  if (!isNullOrEmpty(control_name)) {
+  if (!is_null_or_empty(control_name)) {
       inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
   }
   inputcontrol <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id)
@@ -257,7 +257,7 @@ refreshBODataProvider <- function(conn, document_id, dataSourceId) {
 refresh_bo_document <- function(conn, document, dataSourceType = NULL) {
   document_id <- get_bo_item_id(document)
   dp <- get_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '')
-  if (!isNullOrEmpty(dataSourceType)) dp %<>% dplyr::filter(dataSourceType == dataSourceType)
+  if (!is_null_or_empty(dataSourceType)) dp %<>% dplyr::filter(dataSourceType == dataSourceType)
   dp$id %>% sapply(function(x) refreshBODataProvider(conn, document_id, x))
 }
 

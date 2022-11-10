@@ -27,6 +27,7 @@ Imports:
     methods,
     readr,
     dplyr,
+    sodium,
     tibble,
     tidyr,
     purrr
