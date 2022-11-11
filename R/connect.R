@@ -65,7 +65,7 @@ clear_token_header <- function(conn) {
 }
 
 try_token <- function(conn, server, token) {
-  cat(";Trying token from database (2)", token)
+  log_message("Trying token from database", ";", token, ";;try_token line 68")
   result <- tryCatch({
       # this sets the token in the mutable connection
       conn$request$headers[["X-SAP-LogonToken"]] <- token
@@ -81,7 +81,7 @@ try_token <- function(conn, server, token) {
 
 check_bo_connection <- function(conn) {
   if (rlang::is_empty(conn)) {
-    mycat("Empty connection reference",";check_bo_connection 83", level = "ERROR")
+    log_message("Empty connection reference",";check_bo_connection 83", level = "ERROR")
   }
   if (class(conn) == "request_reference_class") {
     if (check_bo_connection_state(conn)) {
@@ -109,11 +109,11 @@ get_cached_token <- function(conn, server, username) {
     for (i in 1:length(tokens)) {
       token <- tokens[i]
       if (try_token(conn = conn, server=server, token = token)) {
-        mycat('Using token', conn$request$headers[["X-SAP-LogonToken"]])
-        mycat("reusing token ================================================================")
+        log_message('Using token', conn$request$headers[["X-SAP-LogonToken"]])
+        log_message("reusing token ================================================================")
         return(TRUE)
       } else {
-        mycat("removing token ----------------------------------------------------------------")
+        log_message("removing token ----------------------------------------------------------------")
         cat("try_token", "token", token, "failed, removing token")
         remove_cached_token(token)
       }
@@ -140,8 +140,8 @@ get_new_token <- function(conn, server, username, password = NULL) {
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
   }
-  mycat("new token ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-  mycat('Using new token', token, ";open_bo_connection line 259")
+  log_message("new token ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+  log_message('Using new token', token, ";open_bo_connection line 259")
   return(TRUE)
 }
 
@@ -213,7 +213,7 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
     if (!from_keyring) {
       stored_password <- get_keyring_secret(username)
       if (!is.null(stored_password) && stored_password != password) {
-        mycat("Updating keyring password for ", username, ";open_bo_connection line 208")
+        log_message("Updating keyring password for ", username, ";open_bo_connection line 208")
         set_keyring_secret(username, password)
       }
     }

@@ -49,12 +49,12 @@ get_keyring_file_password <- function() {
 #' @export
 #' @noRd
 clear_keyring <- function() {
-  mycat(paste("Removing keyring at", get_keyring_path()), "clear_keyring line 41")
+  log_message(paste("Removing keyring at", get_keyring_path()), ";;clear_keyring line 41")
   file.remove(get_keyring_path())
 }
 
 create_keyring_file <- function(kr) {
-  mycat(paste(";Creating new keyring at", get_keyring_path()), "create_keyring_file line 46")
+  log_message(paste(";Creating new keyring at", get_keyring_path()), "create_keyring_file line 46")
   kr$keyring_create('system', password = get_keyring_file_password())
   return(kr)
 }
@@ -64,7 +64,7 @@ get_keyring <- function() {
   kr <- keyring::backend_file$new()
   keyring_path <- get_keyring_path()
   if (!file.exists(keyring_path)) {
-    mycat("get_keyring keyring file not found at", get_keyring_path(), "get_keyring ilne 56")
+    log_message("get_keyring keyring file not found at", get_keyring_path(), "get_keyring ilne 56")
     kr <- create_keyring_file(kr)
   }
   kr
@@ -74,9 +74,9 @@ unlock_keyring <- function() {
   kr <- get_keyring()
   tryCatch({
     kr$keyring_unlock(password = get_keyring_file_password())
-    mycat(";", "unlock_keyring keyring location", get_keyring_path(), "is locked:", kr$keyring_is_locked(), "keyring count", nrow(kr$list()), "unlock_keyring line 66")
+    log_message(";", "unlock_keyring keyring location", get_keyring_path(), "is locked:", kr$keyring_is_locked(), "keyring count", nrow(kr$list()), "unlock_keyring line 66")
   }, error=function(cond){
-    mycat("Could not unlock keyring at", get_keyring_path(), ";unlock_keyring line 68")
+    log_message("Could not unlock keyring at", get_keyring_path(), ";unlock_keyring line 68")
     clear_keyring()
     kr <- get_keyring()
     kr$keyring_unlock(password = get_keyring_file_password())
@@ -91,7 +91,7 @@ unlock_keyring <- function() {
 #' @export
 list_keyring <- function() {
   kr <- unlock_keyring()
-  mycat(";list_keyring;; line 96")
+  log_message(";list_keyring;; line 96")
   kr$get(service='borestapi')
 }
 
@@ -104,7 +104,7 @@ delete_keyring_secret <- function(name) {
   kr <- unlock_keyring()
   # username below is the keyring entry name
   kr$delete('borestapi', username = name)
-  mycat(";delete_keyring_secret", name, ";; line 108")
+  log_message("delete_keyring_secret", name, ";; line 108")
 }
 
 #' Set a secret in the keyring
@@ -117,7 +117,7 @@ set_keyring_secret <- function(name, value) {
   kr <- unlock_keyring()
   # username below is the keyring entry name
   kr$set_with_value('borestapi', username = name, password = value)
-  mycat(";set_keyring_secret 121", name, file = stderr())
+  log_message("set_keyring_secret", name, ";;set_keyring_secret line 120")
 }
 
 #' Get a secret from the keyring
@@ -133,7 +133,7 @@ get_keyring_secret <- function(name) {
   kr <- unlock_keyring()
   secret <- tryCatch(
     {
-      mycat("get_keyring_secret", name, ";;line 137")
+      log_message("get_keyring_secret", name, ";;get_keyring_secret line 137")
       kr$get(service_name, username = name)
     },
     error = function(cond) {
@@ -149,10 +149,10 @@ get_keyring_secret <- function(name) {
     }
   }
   if (is.null(secret)) {
-    mycat("No entry ", name, " for service", service_name, 'at path',
-          keyring_path, "get_keyring_secret line 129")
+    log_message("No entry ", name, " for service", service_name, 'at path',
+          keyring_path, ";;get_keyring_secret line 129", level = 'WARN')
   } else {
-    mycat("Retrived keyring entry", name, "secret length", str_length(secret) , ";get_keyring_secret line 119")
+    log_message("Retrieved keyring entry", name, ";secret length", str_length(secret) , ";;get_keyring_secret line 119")
   }
   return(secret)
 }

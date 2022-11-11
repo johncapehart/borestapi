@@ -4,16 +4,22 @@
 \alias{post_bo_spreadsheet}
 \title{POST a new spreadsheet to BO folder}
 \usage{
-post_bo_spreadsheet(conn, filepath, filename, parent_folder, format = "json")
+post_bo_spreadsheet(
+  conn,
+  filename,
+  parent_folder,
+  filepath = filename,
+  format = "json"
+)
 }
 \arguments{
 \item{conn}{Connection reference}
 
-\item{filepath}{Path to spreadsheet file (including file name)}
-
 \item{filename}{Name for spreasheet file}
 
 \item{parent_folder}{Numeric id of the folder}
+
+\item{filepath}{Path to spreadsheet file (including file name)}
 
 \item{format}{HTTP body format to use}
 }

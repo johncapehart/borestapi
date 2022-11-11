@@ -13,7 +13,7 @@ get_bo_token_database_path <- function() {
 clear_saved_tokens <- function() {
   db_conn <- dbConnect(RSQLite::SQLite(), dbname = get_bo_token_database_path())
   dbExecute(db_conn, paste0("DELETE FROM tokens"))
-  mycat("Cleared saved tokens")
+  log_message("Cleared saved tokens")
   dbDisconnect(db_conn)
 }
 
@@ -44,15 +44,15 @@ get_saved_tokens <- function(username, server) {
     dplyr::filter(serverkey == server) %>%
     dplyr::filter(usernamekey == username) %>%
     dplyr::arrange(timestamp)
-  mycat("get_saved_tokens token count", nrow(filteredtokens), "get_saved_tokens line 328")
+  log_message("get_saved_tokens token count", nrow(filteredtokens), "get_saved_tokens line 328")
   return(filteredtokens)
 }
 
 remove_cached_token <- function(token) {
-  mycat("removing token", token, ";remove_cached_token line 316")
+  log_message("removing token", token, ";remove_cached_token line 316")
   db_conn <- dbConnect(RSQLite::SQLite(), dbname = get_bo_token_database_path())
   dbExecute(db_conn, paste0("DELETE FROM tokens WHERE token='", token, "'"))
-  mycat("token removed", token, "count", nrow(dbReadTable(db_conn, "tokens")), ";remove_cached_token line 335")
+  log_message("token removed", token, "count", nrow(dbReadTable(db_conn, "tokens")), ";remove_cached_token line 335")
   dbDisconnect(db_conn)
 }
 
@@ -65,7 +65,7 @@ save_bo_token <- function(username, server, token) {
   } else {
     dbWriteTable(db_conn, "tokens", tokens, append = TRUE)
   }
-  mycat("token saved", token, "count", nrow(dbReadTable(db_conn, "tokens")), ";save_bo_token line 316")
+  log_message("token saved", token, "count", nrow(dbReadTable(db_conn, "tokens")), ";save_bo_token line 316")
   dbDisconnect(db_conn)
 }
 

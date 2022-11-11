@@ -10,7 +10,7 @@ test_that(paste("Cars dataframe uploads to BO"), {
   writeDataTable(wb2, sheet, df)
   saveWorkbook(wb2, file, overwrite = TRUE)
 
-  upload_bo_spreadsheet(conn, file, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+  upload_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
   sheet2 <- get_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
   expect_equal(sheet2$spreadsheet$sheets$sheet[[1]], "Cars")
   file.remove(file)

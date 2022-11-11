@@ -11,9 +11,9 @@ report_request_result <- function(request, response, ...) {
   message2 <- paste(tail(inputs, -1), collapse = " ")
   # if(is.na(message1)||message1=='NA') #browser()()
   if (response$status_code == 200) {
-    mycat(paste(message1, "succeeded", ";", message2, response$url))
+    log_message(paste(message1, "succeeded", ";", message2, response$url))
   } else {
-    mycat(paste(message1, "failed", response$status_code, ";", message2, response$url, request$verb, ";", content(response, as='text', encoding='UTF-8')), file = stderr())
+    log_message(paste(message1, "failed", response$status_code, ";", message2, response$url, request$verb, content(response, as='text', encoding='UTF-8')), file = stderr(), level="ERROR")
     # throw()
   }
 }
@@ -109,7 +109,7 @@ get_bo_item <- function(conn, name = NULL, parent_folder = NULL, kind = NULL, ow
   body <- list("query" = query) %>% listToJSON()
   url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
   response <- POST(url = url, body = body, request)
-  report_request_result(request, response, ";CMS Query", query,  "get_bo_item 129")
+  report_request_result(request, response, ";CMS Query", query,  ";;get_bo_item 129")
   results <- bind_bo_query_results_to_tibble(content(response)$entries)
   if (nrow(results) > 1) {
     results <- dplyr::distinct(results, SI_ID, .keep_all=TRUE)

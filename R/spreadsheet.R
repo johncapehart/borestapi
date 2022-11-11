@@ -3,15 +3,15 @@
 #' POST a new spreadsheet to BO folder
 #'
 #' @param conn Connection reference
-#' @param filepath Path to spreadsheet file (including name)
 #' @param filename Name for spreasheet file
 #' @param parent_folder Numeric id of the parent folder
+#' @param filepath Path to spreadsheet file (including name)
 #' @param format HTTP body format to use
 #'
 #' @return Response content
 #'
 #' @noRd
-post_bo_spreadsheet_raw <- function(conn,  filepath, filename, parent_folder, format = 'json') {
+post_bo_spreadsheet_raw <- function(conn, filename, parent_folder, filepath = filename, format = 'json') {
   request <- check_bo_connection(conn)
   mimeType <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   mimeType <- 'application/vnd.ms-excel'
@@ -64,11 +64,11 @@ get_bo_spreadsheet_attachmentInfos <- function(filename, parent_folder, format =
 #' POST a new spreadsheet to BO folder
 #'
 #' @param conn Connection reference
-#' @param filepath Path to spreadsheet file (including file name)
 #' @param filename Name for spreasheet file
 #' @param parent_folder Numeric id of the folder
+#' @param filepath Path to spreadsheet file (including file name)
 #' @param format HTTP body format to use
-post_bo_spreadsheet <- function(conn,  filepath, filename, parent_folder, format = 'json') {
+post_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = filename, format = 'json') {
   request <- check_bo_connection(conn)
   mimeType <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   #mimeType <- 'application/vnd.ms-excel'
@@ -89,10 +89,10 @@ post_bo_spreadsheet <- function(conn,  filepath, filename, parent_folder, format
 #' PUT an existing spreadsheet to BO folder
 #'
 #' @param conn Connection reference
-#' @param filepath Path to spreadsheet file (including file name)
 #' @param filename Name for spreasheet file
 #' @param sheet_id Numeric id of spreadsheet document
-put_bo_spreadsheet <- function(conn, filepath, filename, sheet_id) {
+#' @param filepath Path to spreadsheet file (including file name)
+put_bo_spreadsheet <- function(conn, filename, sheet_id, filepath = filename) {
   request <- check_bo_connection(conn)
   request$headers = add_bo_headers(request$headers)
   .body <- upload_file(filepath)
@@ -157,19 +157,19 @@ delete_bo_spreadsheet <- function(conn, filename, parent_folder) {
 #' Title
 #'
 #' @param conn Connection reference
-#' @param filepath Path to spreadsheet file (including file name)
 #' @param filename Name of the spreadsheet
 #' @param parent_folder Numeric id of the folder
+#' @param filepath Path to spreadsheet file (including file name). Defaults to filename
 #'
 #' @return List of properties for spreadsheet
 #' @export
-upload_bo_spreadsheet <- function(conn, filepath, filename, parent_folder) {
+upload_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = filename) {
   request <- check_bo_connection(conn)
-  mycat(";Upload excel file",  filename, ";upload_bo_spreadsheet 141", duration = 60)
+  log_message("Upload excel file",  filename, ";;upload_bo_spreadsheet 141", duration = 60)
   sheet <- get_bo_item(conn, filename, parent_folder = parent_folder, kind = "Excel")
   if (nrow(sheet)) {
-    sheet <- put_bo_spreadsheet(conn, filepath, filename, sheet_id = sheet$SI_ID)
+    sheet <- put_bo_spreadsheet(conn, filename, sheet_id = sheet$SI_ID, filepath)
   } else {
-    sheet <- post_bo_spreadsheet(conn, filepath, filename, parent_folder = parent_folder)
+    sheet <- post_bo_spreadsheet(conn, filename, parent_folder = parent_folder, filepath)
   }
 }

@@ -4,16 +4,16 @@
 \alias{put_bo_spreadsheet}
 \title{PUT an existing spreadsheet to BO folder}
 \usage{
-put_bo_spreadsheet(conn, filepath, filename, sheet_id)
+put_bo_spreadsheet(conn, filename, sheet_id, filepath = filename)
 }
 \arguments{
 \item{conn}{Connection reference}
 
-\item{filepath}{Path to spreadsheet file (including file name)}
-
 \item{filename}{Name for spreasheet file}
 
 \item{sheet_id}{Numeric id of spreadsheet document}
+
+\item{filepath}{Path to spreadsheet file (including file name)}
 }
 \description{
 PUT an existing spreadsheet to BO folder

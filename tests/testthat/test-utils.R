@@ -1,5 +1,5 @@
-test_that("mycat logs message", {
+test_that("log_message logs message", {
   print(get_logging_threshold())
-  try({mycat("prefix", "function", ";;line 0", level="ERROR")})
+  try({log_message("prefix", "function", ";;line 0", level="ERROR")})
   expect_equal(1, 1)
 })

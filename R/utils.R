@@ -52,7 +52,7 @@ logg <- function(loggername, level, s) {
   )
 }
 
-mycat <- function(..., file = stdout(), duration = 15, level = default_logging_level) {
+log_message <- function(..., trace, file = stdout(), duration = 15, level = default_logging_level) {
   level <- stringr::str_to_upper(level)
   s <- paste(paste(unlist(list(...)), collapse = " "), collapse = " ")
   threshold <- get_logging_threshold()
@@ -71,7 +71,7 @@ mycat <- function(..., file = stdout(), duration = 15, level = default_logging_l
       tryCatch(
         {
           cat(paste("Attempted message", s), file=stderr())
-          cat(paste("Logging error", "mycat 161", cond, level), file = stderr())
+          cat(paste("Logging error", "log_message 161", cond, level), file = stderr())
         }
       )
     }
