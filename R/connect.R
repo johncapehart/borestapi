@@ -4,15 +4,28 @@
 #' @importFrom stats filter
 #' @importFrom magrittr %<>% %>%
 #' @importFrom httr GET POST PUT DELETE add_headers upload_file content config
+#' @importFrom httr2 request req_headers req_options
+#' @importFrom httr2 req_body_json req_body_file req_body_raw req_body_multipart
+#' @importFrom httr2 req_perform req_dry_run
 #' @importFrom jsonlite toJSON fromJSON
 #' @include api-utils.R
 #'
 # prerequisites ----------------------------------------------------------------
 
 # Create reference class for httr::request
+
+structure(
+  list(
+    httr_request = add_headers(),
+    httr2_request = httr2::request("https://")
+  ),
+  class = "myrequest"
+)
+
 setOldClass("request")
-setRefClass("request_reference_class", fields = list(request = "request"))
-new_bo_request_reference <- setRefClass("request_reference_class", fields = list(request = "request"))
+setOldClass("httr2_request")
+setRefClass("request_reference_class", fields = list(request='request', request2='httr2_request'))
+new_bo_request_reference <- setRefClass("request_reference_class", fields = list(request = "request", request2 = "httr2_request"))
 
 get_home_path <- function() {
   home_path <- path.expand('~')
@@ -109,12 +122,11 @@ get_cached_token <- function(conn, server, username) {
     for (i in 1:length(tokens)) {
       token <- tokens[i]
       if (try_token(conn = conn, server=server, token = token)) {
-        log_message('Using token', conn$request$headers[["X-SAP-LogonToken"]])
-        log_message("reusing token ================================================================")
+        log_with_separator("Reusing token", separator='=', width=120)
+        log_debug(paste0("{token}"))
         return(TRUE)
       } else {
-        log_message("removing token ----------------------------------------------------------------")
-        cat("try_token", "token", token, "failed, removing token")
+        log_with_separator("Removing token", separator='-', width=120)
         remove_cached_token(token)
       }
     }
@@ -136,12 +148,13 @@ get_new_token <- function(conn, server, username, password = NULL) {
   token <- content(response)$logontoken
   if (!is.null(token) && str_length(token) > 0) {
     conn$request$headers[["X-SAP-LogonToken"]] <- token
+    conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
     save_bo_token(username, server, token)
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
   }
-  log_message("new token ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-  log_message('Using new token', token, ";open_bo_connection line 259")
+  log_with_separator("New token", separator='+', width=120)
+  log_debug(paste0("{token}"))
   return(TRUE)
 }
 
@@ -155,12 +168,21 @@ get_new_request <- function(conn, server, username) {
   conn$request <-
     add_headers("Accept" = "application/json",
                 "Content-Type" = "application/json",
-                "Host" = server,
-                "From" = username)
+                "Host" = server)
   # set base url
-  conn$request$url <- paste0("https://", server, "/biprws")
+  base_url <- paste0("https://", server, "/biprws")
+  conn$request$url <- base_url
+
+  conn$request2 <- httr2::request(base_url) %>%
+    req_headers("Accept" = "application/json") %>%
+    req_headers("Content-Type" = "application/json") %>%
+    req_headers("Host" = server) %>%
+    req_options(ssl_verifypeer = 0)
+
+  log_info("Created connection to", base_url)
   conn
 }
+
 #' Open a connection to a BO server. You can keep parameers in environment variables
 #'
 #' @param server Server to connect to "server:port" (optional). Defaults BO_SERVER environment variable

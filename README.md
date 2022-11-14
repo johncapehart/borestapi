@@ -7,8 +7,7 @@
 
 <!-- badges: end -->
 
-The goal of borestapi is export and import data from SAP Business
-Objects
+The goal of borestapi is to …
 
 ## Installation
 

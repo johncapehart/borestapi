@@ -12,10 +12,12 @@ Description: An R interface to the SAP Business Objects REST API.
         Set document filters and refresh document data
 License: MIT + file LICENSE
 Imports:
+    crayon,
     digest,
     futile.logger,
     glue,
     httr,
+    httr2,
     jsonlite,
     keyring,
     lifecycle,
@@ -24,6 +26,7 @@ Imports:
     rlang,
     RSQLite,
     stringr,
+    logger,
     methods,
     readr,
     dplyr,

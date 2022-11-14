@@ -11,9 +11,9 @@ report_request_result <- function(request, response, ...) {
   message2 <- paste(tail(inputs, -1), collapse = " ")
   # if(is.na(message1)||message1=='NA') #browser()()
   if (response$status_code == 200) {
-    log_message(paste(message1, "succeeded", ";", message2, response$url))
+    logger::log_info(paste(message1, "succeeded", ";d", message2, response$url))
   } else {
-    log_message(paste(message1, "failed", response$status_code, ";", message2, response$url, request$verb, content(response, as='text', encoding='UTF-8')), file = stderr(), level="ERROR")
+    logger::log_error(paste(message1, "failed", response$status_code, ";d", message2, response$url, request$verb, content(response, as='text', encoding='UTF-8')))
     # throw()
   }
 }

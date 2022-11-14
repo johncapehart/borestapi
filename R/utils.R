@@ -1,9 +1,14 @@
 #' @importFrom futile.logger layout.simple layout.json
 #' @importFrom futile.logger flog.trace flog.debug flog.info flog.warn flog.error
-#' @importFrom futile.logger TRACE DEBUG INFO WARN ERROR
 #' @importFrom futile.logger appender.console flog.appender flog.layout
-#' @importFrom stringr str_to_upper
-
+#' @importFrom stringr str_to_upper str_flatten
+#'
+#' @importFrom logger log_debug log_error log_errors log_fatal log_info log_warn log_trace log_with_separator
+#' @importFrom logger layout_simple layout_glue_colors layout_json layout_glue_generator
+#' @importFrom logger log_threshold DEBUG ERROR FATAL INFO WARN TRACE
+#'
+#' @importFrom crayon combine_styles make_style reset
+#'
 is_null_or_empty <- function(v) {
   if (!missing(v) && !is.null(v) && !is.na(v) && length(v) > 0) {
     return(!(str_length(v) > 0))
@@ -20,9 +25,20 @@ set_logging_threshold <- function(threshold) {
                       'INFO' = futile.logger::INFO,
                       'WARN' = futile.logger::WARN,
                       'ERROR' = futile.logger::ERROR,
+                      'FATAL' = futile.logger::FATAL,
                       futile.logger::INFO
   )
+  threshold2 <- switch(threshold,
+                      'TRACE' = logger::TRACE,
+                      'DEBUG' = logger::DEBUG,
+                      'INFO' = logger::INFO,
+                      'WARN' = logger::WARN,
+                      'ERROR' = logger::ERROR,
+                      'FATAL' = logger::FATAL,
+                      logger::INFO
+  )
   futile.logger::flog.threshold(threshold=threshold, name='ROOT')
+  logger::log_threshold(threshold2)
   lapply(loggernames, function(x)futile.logger::flog.threshold(threshold, name=x))
 }
 
@@ -77,4 +93,47 @@ log_message <- function(..., trace, file = stdout(), duration = 15, level = defa
     }
   )
 }
+
+my_log_colorize <- function(msg, level) {
+  color <- switch(
+    attr(level, 'level'),
+    'FATAL'   = crayon::combine_styles(crayon::bold, crayon::make_style('red1')),
+    'ERROR'   = crayon::make_style('red4'),
+    'WARN'    = crayon::make_style('darkorange'),
+    'SUCCESS' = crayon::combine_styles(crayon::bold, crayon::make_style('green4')),
+    'INFO'    = crayon::make_style('gray40'),
+    'DEBUG'   = crayon::make_style('deepskyblue4'),
+    'TRACE'   = crayon::make_style('dodgerblue4'),
+    stop('Unknown log level')
+  )
+  paste0(color(msg),reset(''))
+}
+
+split_message<-function(msg, level) {
+  smsg <- str_split(paste0('x', msg), ';(?=[\\w])')[[1]]
+  smsg2 <- lapply(smsg,  function(s) {
+    tag = substring(s,1,1)
+    s <- substring(s, 2) # remove first character
+    s2 <- switch(tag,
+                 'i'= ifelse (log_threshold()>=logger::INFO,my_log_colorize(s, INFO),''),
+                 'd'= ifelse (log_threshold()>=logger::DEBUG,my_log_colorize(s, DEBUG),''),
+                 't'= ifelse (log_threshold()>=logger::TRACE,my_log_colorize(s, TRACE),''),
+                 my_log_colorize(s, level)
+    )
+    s2
+  })
+  msg3 <- stringr::str_flatten(smsg2, collapse=' ')
+  msg3
+}
+
+console_layout <- logger::layout_glue_generator(
+  format = paste(
+    '{crayon::bold(my_log_colorize(level, levelr))}',
+    '{crayon::make_style("gray40")(format(time, "[%Y-%m-%d %H:%M:%S]")
+    )}',
+    '{split_message(msg, levelr)}'))
+
+logger::log_layout(console_layout)
+logger::log_threshold(logger::TRACE)
+
 
