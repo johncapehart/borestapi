@@ -155,7 +155,11 @@ init_log <- function() {
       '{split_message(msg, levelr)}'))
 
   logger::log_layout(console_layout)
-  logger::log_threshold(Sys.getenv("BO_LOGGING_THRESHOLD"))
+  threshold0 <- Sys.getenv("BO_LOGGING_THRESHOLDxxx")
+  if (is_null_or_empty(threshold0)) {
+    threshold0 <- logger::INFO
+  }
+  logger::log_threshold(threshold0)
 }
 
 
