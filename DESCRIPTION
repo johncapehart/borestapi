@@ -49,6 +49,7 @@ Collate:
     'spreadsheet.R'
     'token-cache.R'
     'utils.R'
+    'zzz.R'
 Suggests:
     getPass,
     knitr,

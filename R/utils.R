@@ -48,13 +48,11 @@ get_logging_threshold <- function() {
 
 loggernames <- c('console') # c('console','file','notification')
 
-init_log <- function() {
-  flog.layout(layout.json)
-  flog.appender(appender.console(), name='console')
-  flog.layout(layout.simple, name='console')
-  set_logging_threshold(Sys.getenv("BO_LOGGING_THRESHOLD"))
-  logger_ready <<- TRUE
-}
+#' Initializes the logger (called from .onLoad)
+#'
+#' @return nothing
+#' @export
+
 
 logg <- function(loggername, level, s) {
   if (!exists('logger_ready') || is_null(logger_ready) || !logger_ready) init_log()
@@ -94,6 +92,14 @@ log_message <- function(..., trace, file = stdout(), duration = 15, level = defa
   )
 }
 
+#' Title
+#'
+#' @param msg The message to log
+#' @param level The logging level
+#'
+#' @return nothing
+#' @export
+
 my_log_colorize <- function(msg, level) {
   color <- switch(
     attr(level, 'level'),
@@ -104,16 +110,24 @@ my_log_colorize <- function(msg, level) {
     'INFO'    = crayon::make_style('gray40'),
     'DEBUG'   = crayon::make_style('deepskyblue4'),
     'TRACE'   = crayon::make_style('dodgerblue4'),
-    stop('Unknown log level')
+    crayon::combine_styles(crayon::strikethrough, crayon::make_style('gry100'))
   )
   paste0(color(msg),reset(''))
 }
 
+#' Title
+#'
+#' @param msg The message to log
+#' @param level The logging level
+#'
+#' @return nothing
+#' @export
+#'
 split_message<-function(msg, level) {
   smsg <- str_split(paste0('x', msg), ';(?=[\\w])')[[1]]
   smsg2 <- lapply(smsg,  function(s) {
     tag = substring(s,1,1)
-    s <- substring(s, 2) # remove first character
+    s <- trimws(substring(s, 2)) # remove first character
     s2 <- switch(tag,
                  'i'= ifelse (log_threshold()>=logger::INFO,my_log_colorize(s, INFO),''),
                  'd'= ifelse (log_threshold()>=logger::DEBUG,my_log_colorize(s, DEBUG),''),
@@ -126,14 +140,24 @@ split_message<-function(msg, level) {
   msg3
 }
 
-console_layout <- logger::layout_glue_generator(
-  format = paste(
-    '{crayon::bold(my_log_colorize(level, levelr))}',
-    '{crayon::make_style("gray40")(format(time, "[%Y-%m-%d %H:%M:%S]")
-    )}',
-    '{split_message(msg, levelr)}'))
+init_log <- function() {
+  flog.layout(layout.json)
+  flog.appender(appender.console(), name='console')
+  flog.layout(layout.simple, name='console')
+  set_logging_threshold(Sys.getenv("BO_LOGGING_THRESHOLD"))
+  logger_ready <<- TRUE
 
-logger::log_layout(console_layout)
-logger::log_threshold(logger::TRACE)
+  console_layout <- logger::layout_glue_generator(
+    format = paste(
+      '{crayon::bold(my_log_colorize(level, levelr))}',
+      '{crayon::make_style("gray40")(format(time, "[%Y-%m-%d %H:%M:%S]")
+    )}',
+      '{split_message(msg, levelr)}'))
+
+  logger::log_layout(console_layout)
+  logger::log_threshold(Sys.getenv("BO_LOGGING_THRESHOLD"))
+}
+
+
 
 
