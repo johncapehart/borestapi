@@ -143,11 +143,12 @@ get_cached_token <- function(conn, server, username) {
     for (i in 1:length(tokens)) {
       token <- tokens[i]
       if (try_token(conn = conn, server=server, token = token)) {
-        log_with_separator("Reusing token", separator='=', width=120)
+        log_with_separator("Reusing token for ", paste(server, username), separator='=', width=120)
         log_debug(paste0("{token}"))
         return(TRUE)
       } else {
-        log_with_separator("Removing token", separator='-', width=120)
+        log_with_separator("Removing token ", paste(server, username), separator='-', width=120)
+        log_debug(paste0("{token}"))
         remove_cached_token(token)
       }
     }
