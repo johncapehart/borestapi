@@ -1,5 +1,5 @@
 #' @importFrom RSQLite dbConnect dbDisconnect dbExecute dbListTables dbReadTable dbWriteTable dbAppendTable
-#' @importFrom base Date
+#' @importFrom lubridate now
 #'
 # token caching ----------------------------------------------------------------
 
@@ -35,7 +35,7 @@ get_saved_tokens <- function(username, server) {
   db_conn <- dbConnect(RSQLite::SQLite(), dbname = get_bo_token_database_path())
   table <- dbListTables(db_conn) %>% keep(~ .x == "tokens")
   if (!(length(table) > 0)) {
-    tokens <- tibble(timestamp = base::Date(0), usernamekey = character(0), serverkey = character(0), token = character(0))
+    tokens <- tibble(timestamp = lubridate::now(), usernamekey = character(0), serverkey = character(0), token = character(0))
     dbWriteTable(db_conn, "tokens", tokens, append = TRUE)
   } else {
     tokens <- dbReadTable(db_conn, "tokens")
