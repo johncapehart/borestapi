@@ -7,6 +7,7 @@
 #' @importFrom httr2 request req_headers req_options
 #' @importFrom httr2 req_body_json req_body_file req_body_raw req_body_multipart
 #' @importFrom httr2 req_perform req_dry_run
+#' @importFrom httr2 resp_status resp_body_json resp_body_xml resp_body_html resp_body_string
 #' @importFrom jsonlite toJSON fromJSON
 #' @include api-utils.R
 #'
@@ -57,6 +58,23 @@ get_user_rights <- function(conn) {
   return(NULL)
 }
 
+#' Get user rights on the BO server
+#'
+#' @param conn connection reference
+#'
+#' @return Response content or NULL
+#' @export
+get_user_rights2 <- function(conn) {
+  # a POST query of item SI_ID = 1 is the test of a token
+  request <- conn$request2
+  request$url = paste0(request$url, '/raylight/v1/session/rights')
+  response <- req_perform(request)
+  if (resp_status(response) == 200) {
+    return(httr2::resp_body_json(response))
+  }
+  return(NULL)
+}
+
 #' Check to see if an SAP access token is still valid
 #'
 #' @param conn connection reference
@@ -66,7 +84,7 @@ get_user_rights <- function(conn) {
 #' @export
 #' @noRd
 check_bo_connection_state <- function(conn) {
-  if (hasArg("conn") && !is.null(conn) && !is.null(conn$request)) {
+  if (hasArg("conn") && !is.null(conn)) {
     rights <- get_user_rights(conn)
     return(!is_empty(rights))
   }
@@ -82,6 +100,7 @@ try_token <- function(conn, server, token) {
   result <- tryCatch({
       # this sets the token in the mutable connection
       conn$request$headers[["X-SAP-LogonToken"]] <- token
+      conn$request2 <- conn$request2 %>% req_headers("X-SAP-LogonToken" = token)
       check_bo_connection_state(conn = conn)
     }, error = function(cond) {
       FALSE
@@ -148,7 +167,9 @@ get_new_token <- function(conn, server, username, password = NULL) {
   token <- content(response)$logontoken
   if (!is.null(token) && str_length(token) > 0) {
     conn$request$headers[["X-SAP-LogonToken"]] <- token
-    conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
+  if (USE_HTTR2) {
+      conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
+  }
     save_bo_token(username, server, token)
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
@@ -171,19 +192,21 @@ get_new_request <- function(conn, server, username) {
                 "Host" = server)
   # set base url
   base_url <- paste0("https://", server, "/biprws")
-  conn$request$url <- base_url
-
-  conn$request2 <- httr2::request(base_url) %>%
-    req_headers("Accept" = "application/json") %>%
-    req_headers("Content-Type" = "application/json") %>%
-    req_headers("Host" = server) %>%
-    req_options(ssl_verifypeer = 0)
-
+  IF (USE_HTTR2) {
+    conn$request$url <- base_url
+  }
+  if (USE_HTTR2) {
+      conn$request2 <- httr2::request(base_url) %>%
+      req_headers("Accept" = "application/json") %>%
+      req_headers("Content-Type" = "application/json") %>%
+      req_headers("Host" = server) %>%
+      req_options(ssl_verifypeer = 0)
+  }
   log_info("Created connection to", base_url)
   conn
 }
 
-#' Open a connection to a BO server. You can keep parameers in environment variables
+#' Open a connection to a BO server. You can keep parameters in environment variables
 #'
 #' @param server Server to connect to "server:port" (optional). Defaults BO_SERVER environment variable
 #' @param username (optional). Defaults to "BO_USERNAME environment variable

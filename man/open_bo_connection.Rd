@@ -2,7 +2,7 @@
 % Please edit documentation in R/connect.R
 \name{open_bo_connection}
 \alias{open_bo_connection}
-\title{Open a connection to a BO server. You can keep parameers in environment variables}
+\title{Open a connection to a BO server. You can keep parameters in environment variables}
 \usage{
 open_bo_connection(
   server = Sys.getenv("BO_SERVER"),
@@ -24,7 +24,7 @@ open_bo_connection(
 Connection reference
 }
 \description{
-Open a connection to a BO server. You can keep parameers in environment variables
+Open a connection to a BO server. You can keep parameters in environment variables
 }
 \examples{
 # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME". and password in a

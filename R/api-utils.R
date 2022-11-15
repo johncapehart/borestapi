@@ -1,3 +1,5 @@
+USE_HTTR2 <- TRUE
+
 #' Report error in API call
 #'
 #' @param request httr::request
@@ -11,6 +13,26 @@ report_request_result <- function(request, response, ...) {
   message2 <- paste(tail(inputs, -1), collapse = " ")
   # if(is.na(message1)||message1=='NA') #browser()()
   if (response$status_code == 200) {
+    logger::log_info(paste(message1, "succeeded", ";d", message2, response$url))
+  } else {
+    logger::log_error(paste(message1, "failed", response$status_code, ";d", message2, response$url, request$verb, content(response, as='text', encoding='UTF-8')))
+    # throw()
+  }
+}
+
+#' Report error in API call
+#'
+#' @param request httr::request
+#' @param response httr::request
+#' @param ... list of text arguments for message
+#'
+#' @noRd
+report_request_result2 <- function(request, response, ...) {
+  inputs <- list(...)
+  message1 <- paste(head(inputs, 1), collapse = " ")
+  message2 <- paste(tail(inputs, -1), collapse = " ")
+  # if(is.na(message1)||message1=='NA') #browser()()
+  if (httr2::resp_status(resonse) == 200) {
     logger::log_info(paste(message1, "succeeded", ";d", message2, response$url))
   } else {
     logger::log_error(paste(message1, "failed", response$status_code, ";d", message2, response$url, request$verb, content(response, as='text', encoding='UTF-8')))
