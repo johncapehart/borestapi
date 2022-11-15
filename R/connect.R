@@ -100,7 +100,9 @@ try_token <- function(conn, server, token) {
   result <- tryCatch({
       # this sets the token in the mutable connection
       conn$request$headers[["X-SAP-LogonToken"]] <- token
-      conn$request2 <- conn$request2 %>% req_headers("X-SAP-LogonToken" = token)
+      if (USE_HTTR2) {
+        conn$request2 <- conn$request2 %>% req_headers("X-SAP-LogonToken" = token)
+      }
       check_bo_connection_state(conn = conn)
     }, error = function(cond) {
       FALSE
@@ -154,7 +156,7 @@ get_cached_token <- function(conn, server, username) {
 }
 
 get_new_token <- function(conn, server, username, password = NULL) {
-  # get request body as json
+  #browser()
   body <- list(
     "clienttype" = "my_BI_Application",
     "username" = username,
@@ -167,9 +169,9 @@ get_new_token <- function(conn, server, username, password = NULL) {
   token <- content(response)$logontoken
   if (!is.null(token) && str_length(token) > 0) {
     conn$request$headers[["X-SAP-LogonToken"]] <- token
-  if (USE_HTTR2) {
-      conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
-  }
+    if (USE_HTTR2) {
+        conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
+    }
     save_bo_token(username, server, token)
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
@@ -192,9 +194,7 @@ get_new_request <- function(conn, server, username) {
                 "Host" = server)
   # set base url
   base_url <- paste0("https://", server, "/biprws")
-  IF (USE_HTTR2) {
-    conn$request$url <- base_url
-  }
+  conn$request$url <- base_url
   if (USE_HTTR2) {
       conn$request2 <- httr2::request(base_url) %>%
       req_headers("Accept" = "application/json") %>%
