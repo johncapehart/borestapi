@@ -33,53 +33,53 @@ decrypt_string <- function(ciphertext) {
 
 # password storage and retrieval ----------------------------------------------------------------
 
-get_keyring_path <- function() {
-  home_path <- get_home_path()
-  keyring_path <- file.path(home_path, Sys.getenv("BO_KEYRING_FILE_PATH"))
-  return(keyring_path)
-}
+# get_keyring_path <- function() {
+#   home_path <- get_home_path()
+#   keyring_path <- file.path(home_path, Sys.getenv("BO_KEYRING_FILE_PATH"))
+#   return(keyring_path)
+# }
 
 get_keyring_file_password <- function() {
   user = Sys.getenv('USER')
   return(digest::digest(paste0('salt', user), 'sha1'))
 }
 
-#' Delete the keyring
-#'
-#' @export
-#' @noRd
-clear_keyring <- function() {
-  log_message(paste("Removing keyring at", get_keyring_path()), ";;clear_keyring line 41")
-  file.remove(get_keyring_path())
-}
-
-create_keyring_file <- function(kr) {
-  log_message(paste(";Creating new keyring at", get_keyring_path()), "create_keyring_file line 46")
-  kr$keyring_create('system', password = get_keyring_file_password())
-  return(kr)
-}
+# # clear_keyring <- function() {
+# #   log_message(paste("Removing keyring at", get_keyring_path()), ";;clear_keyring line 41")
+# #   file.remove(get_keyring_path())
+# # }
+# #
+# create_keyring_file <- function(kr) {
+#   log_message(paste(";Creating new keyring at", "create_keyring_file line 46"))
+#   kr$keyring_create('login') #, password = get_keyring_file_password())
+#   kr$kerying_set_default(kr)
+#   return(kr)
+# }
 
 get_keyring <- function() {
-  options(keyring_backend = "file")
-  kr <- keyring::backend_file$new()
-  keyring_path <- get_keyring_path()
-  if (!file.exists(keyring_path)) {
-    log_message("get_keyring keyring file not found at", get_keyring_path(), "get_keyring ilne 56")
-    kr <- create_keyring_file(kr)
-  }
+  #options(keyring_backend = "file")
+  kr <- keyring::default_backend()
+  # keyring_path <- get_keyring_path()
+  # if (!file.exists(keyring_path)) {
+  #   log_message("get_keyring keyring file not found at", get_keyring_path(), "get_keyring ilne 56")
+  #   kr <- create_keyring_file(kr)
+  # }
   kr
 }
 
 unlock_keyring <- function() {
   kr <- get_keyring()
   tryCatch({
-    kr$keyring_unlock(password = get_keyring_file_password())
-    log_message(";", "unlock_keyring keyring location", get_keyring_path(), "is locked:", kr$keyring_is_locked(), "keyring count", nrow(kr$list()), "unlock_keyring line 66")
+    #kr$keyring_unlock(password = get_keyring_file_password())
+    if (kr$keyring_is_locked) {
+      log_message(";", "unlock_keyring keyring is locked:", kr$keyring_is_locked(), "keyring count", nrow(kr$list()), "unlock_keyring line 66")
+      kr$keyring_unlock()
+    }
   }, error=function(cond){
-    log_message("Could not unlock keyring at", get_keyring_path(), ";unlock_keyring line 68")
-    clear_keyring()
-    kr <- get_keyring()
-    kr$keyring_unlock(password = get_keyring_file_password())
+    log_message("Could not unlock keyring;unlock_keyring line 68")
+    #clear_keyring()
+    #kr <- get_keyring()
+    #kr$keyring_unlock(password = get_keyring_file_password())
   })
   return(kr)
 }
@@ -128,7 +128,7 @@ set_keyring_secret <- function(name, value) {
 #' @export
 
 get_keyring_secret <- function(name) {
-  keyring_path <- get_keyring_path()
+  #keyring_path <- get_keyring_path()
   service_name <- 'borestapi'
   kr <- unlock_keyring()
   secret <- tryCatch(
@@ -149,8 +149,7 @@ get_keyring_secret <- function(name) {
     }
   }
   if (is.null(secret)) {
-    log_message("No entry ", name, " for service", service_name, 'at path',
-          keyring_path, ";;get_keyring_secret line 129", level = 'WARN')
+    log_message("No entry ", name, " for service", service_name, ";;get_keyring_secret line 129", level = 'WARN')
   } else {
     log_message("Retrieved keyring entry", name, ";secret length", str_length(secret) , ";;get_keyring_secret line 119")
   }
