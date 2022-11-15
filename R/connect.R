@@ -147,7 +147,7 @@ get_cached_token <- function(conn, server, username) {
         log_debug(paste0("{token}"))
         return(TRUE)
       } else {
-        log_with_separator("Removing token ", paste(server, username), separator='-', width=120)
+        log_with_separator("Removing token for ", paste(server, username), separator='-', width=120)
         log_debug(paste0("{token}"))
         remove_cached_token(token)
       }
@@ -177,7 +177,7 @@ get_new_token <- function(conn, server, username, password = NULL) {
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
   }
-  log_with_separator("New token", separator='+', width=120)
+  log_with_separator("New token for ", paste(server, username), separator='+', width=120)
   log_debug(paste0("{token}"))
   return(TRUE)
 }
