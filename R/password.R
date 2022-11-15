@@ -69,11 +69,14 @@ get_keyring <- function() {
 
 unlock_keyring <- function() {
   kr <- get_keyring()
+  haveKeyring <- nrow(kr$keyring_list() > 0)
+  if (!haveKeyring) {
+    kr$keyring_create(kr$keyring_default(), password=get_keyring_file_password())
+  }
   tryCatch({
-    #kr$keyring_unlock(password = get_keyring_file_password())
-    if (kr$keyring_is_locked) {
-      log_message(";", "unlock_keyring keyring is locked:", kr$keyring_is_locked(), "keyring count", nrow(kr$list()), "unlock_keyring line 66")
-      kr$keyring_unlock()
+    if (kr$keyring_is_locked()) {
+      log_message(";", "unlock_keyring keyring is locked;;unlock_keyring line 66")
+      kr$keyring_unlock(password = get_keyring_file_password())
     }
   }, error=function(cond){
     log_message("Could not unlock keyring;unlock_keyring line 68")
