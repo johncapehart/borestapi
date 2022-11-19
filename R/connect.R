@@ -138,7 +138,7 @@ check_bo_connection <- function(conn) {
 #' @return TRUE if token found; FALSE otherwise
 #' @noRd
 get_cached_token <- function(conn, server, username) {
-  tokens <- get_saved_tokens(username, server)$token # get matching tokens
+  tokens <- get_saved_items(username, server)$value # get matching tokens
   if (!is.null(tokens) && length(tokens) > 0) {
     for (i in 1:length(tokens)) {
       token <- tokens[i]
@@ -173,7 +173,7 @@ get_new_token <- function(conn, server, username, password = NULL) {
     if (USE_HTTR2) {
         conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
     }
-    save_bo_token(username, server, token)
+    save_item(username, server, token, table_name = 'tokens')
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
   }
@@ -212,11 +212,13 @@ get_new_request <- function(conn, server, username) {
 #' @param server Server to connect to "server:port" (optional). Defaults BO_SERVER environment variable
 #' @param username (optional). Defaults to "BO_USERNAME environment variable
 #' @param password (optional). Use getPass() to enter value
+#' @param save_password Save the password encrypted in the database
 #' @param conn Connection reference to reuse (optional)
+#'
 #' @return Connection reference
 #' @examples
-#' # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME". and password in a
-#' # keyring at "BO_KEYRING_FILE_PATH"
+#' # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME".
+#'  and password in the database
 #' open_bo_connection()
 #' # open a connection to a server using username and password
 #' open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
@@ -224,7 +226,8 @@ get_new_request <- function(conn, server, username) {
 open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
                                username = Sys.getenv("BO_USERNAME"),
                                password = NULL,
-                               conn = NULL) {
+                               conn = NULL,
+                               save_password = TRUE) {
   if (!is_empty(conn)) {
     if (check_bo_connection_state(conn)) {
       return(conn)
@@ -234,34 +237,22 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
   }
   httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate checks
   # reset request
-  if (is_empty(username)) {
-    if (!is_null_or_empty(conn$request$username)) {
-      username <- conn$request$username
-    }
-  }
   if (get_cached_token(conn, server, username)) {
     # search for valid token matching server and username
     return(conn)
   }
-  from_keyring <- FALSE
   if (is_empty(password)) {
-    if (!is_null_or_empty(conn$request$user_password)) {
-      password = decrypt_string(conn$request$user_password)
-    } else {
-      from_keyring <- TRUE
-      password <- get_keyring_secret(username)
-    }
+    password2 <- get_saved_items(username, server, table_name = get_password_table_name())
+  } else {
+    password2 <- password
   }
-  if (get_new_token(conn, server, username, password)) {
-    conn$request$username <- username
-    conn$request$user_password <- encrypt_string(password)
-    # if password is not from the keyring check keyring for existing password
-    if (!from_keyring) {
-      stored_password <- get_keyring_secret(username)
-      if (!is.null(stored_password) && stored_password != password) {
-        log_message("Updating keyring password for ", username, ";open_bo_connection line 208")
-        set_keyring_secret(username, password)
+  if (get_new_token(conn, server, username, password2)) {
+    if (save_password) {
+      if (password2 != password) {
+        save_item(username, server, password2, table_name = get_password_table_name())
       }
+    } else {
+      remove_item(username, server, table_name = get_password_table_name())
     }
     return(conn)
   }

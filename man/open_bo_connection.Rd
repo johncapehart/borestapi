@@ -8,7 +8,8 @@ open_bo_connection(
   server = Sys.getenv("BO_SERVER"),
   username = Sys.getenv("BO_USERNAME"),
   password = NULL,
-  conn = NULL
+  conn = NULL,
+  save_password = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ open_bo_connection(
 \item{password}{(optional). Use getPass() to enter value}
 
 \item{conn}{Connection reference to reuse (optional)}
+
+\item{save_password}{Save the password encrypted in the database}
 }
 \value{
 Connection reference
@@ -27,8 +30,8 @@ Connection reference
 Open a connection to a BO server. You can keep parameters in environment variables
 }
 \examples{
-# open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME". and password in a
-# keyring at "BO_KEYRING_FILE_PATH"
+# open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME".
+ and password in the database
 open_bo_connection()
 # open a connection to a server using username and password
 open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())

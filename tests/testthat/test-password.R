@@ -1,7 +1,7 @@
 test_that("String can be encrypted", {
   plaintext = 'The quick brown fox'
-  ciphertext = encrypt_string(plaintext)
-  expect_equal(plaintext, decrypt_string(ciphertext))
+  ciphertext = encrypt_object(plaintext)
+  expect_equal(plaintext, decrypt_object(ciphertext))
 })
 
 test_that("Password can be saved to keyring", {

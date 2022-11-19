@@ -12,28 +12,29 @@ Description: An R interface to the SAP Business Objects REST API.
         Set document filters and refresh document data
 License: MIT + file LICENSE
 Imports:
+    base64enc,
+    cli,
     crayon,
     digest,
+    dplyr,
     futile.logger,
     glue,
     httr,
     httr2,
     jsonlite,
-    keyring,
     lifecycle,
+    logger,
     lubridate,
     magrittr,
+    methods,
+    openssl,
+    purrr,
     rlang,
     RSQLite,
     stringr,
-    logger,
-    methods,
-    readr,
-    dplyr,
-    sodium,
     tibble,
     tidyr,
-    purrr
+    withr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
@@ -44,7 +45,6 @@ Collate:
     'connect.R'
     'document.R'
     'globals.R'
-    'password.R'
     'report.R'
     'spreadsheet.R'
     'token-cache.R'

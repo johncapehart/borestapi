@@ -115,18 +115,18 @@ my_log_colorize <- function(msg, level) {
   paste0(color(msg),reset(''))
 }
 
-#' Title
+#' Colorize a string by embedded tags starting with ';'
 #'
 #' @param msg The message to log
 #' @param level The logging level
 #'
-#' @return nothing
+#' @return Colorized string
 #' @export
 #'
 split_message<-function(msg, level) {
-  smsg <- str_split(paste0('x', msg), ';(?=[\\w])')[[1]]
+  smsg <- str_split(paste0('x', msg), ';(?=(I|D|T|i|d|t))')[[1]]
   smsg2 <- lapply(smsg,  function(s) {
-    tag = substring(s,1,1)
+    tag = stringr::str_to_lower(substring(s,1,1))
     s <- trimws(substring(s, 2)) # remove first character
     s2 <- switch(tag,
                  'i'= ifelse (log_threshold()>=logger::INFO,my_log_colorize(s, INFO),''),

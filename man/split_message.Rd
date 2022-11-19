@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{split_message}
 \alias{split_message}
-\title{Title}
+\title{Colorize a string by embedded tags starting with ';'}
 \usage{
 split_message(msg, level)
 }
@@ -12,8 +12,8 @@ split_message(msg, level)
 \item{level}{The logging level}
 }
 \value{
-nothing
+Colorized string
 }
 \description{
-Title
+Colorize a string by embedded tags starting with ';'
 }
