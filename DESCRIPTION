@@ -17,7 +17,6 @@ Imports:
     crayon,
     digest,
     dplyr,
-    futile.logger,
     glue,
     httr,
     httr2,

@@ -96,7 +96,7 @@ clear_token_header <- function(conn) {
 }
 
 try_token <- function(conn, server, token) {
-  log_message("Trying token from database", ";", token, ";;try_token line 68")
+  logger::log_info("Trying token from database", ";d", "{token}", ";;try_token line 68")
   result <- tryCatch({
       # this sets the token in the mutable connection
       conn$request$headers[["X-SAP-LogonToken"]] <- token
@@ -115,7 +115,7 @@ try_token <- function(conn, server, token) {
 
 check_bo_connection <- function(conn) {
   if (rlang::is_empty(conn)) {
-    log_message("Empty connection reference",";check_bo_connection 83", level = "ERROR")
+    logger::log_error("Empty connection reference",";check_bo_connection 83")
   }
   if (class(conn) == "request_reference_class") {
     if (check_bo_connection_state(conn)) {

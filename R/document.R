@@ -45,10 +45,10 @@ close_bo_document <- function(conn, document, save = FALSE) {
   report_request_result(request, response, paste(";GET occurances", document_id), "close_bo_document", 55)
   occurrance <- content(response)$occurrences$occurrence
   if (length(occurrance) == 0) {
-    log_message("No occurences to close for", document_id)
+    logger::log_info("No occurences to close for", document_id)
     return()
   } else if (length(occurrance) > 1) {
-    log_message(length(occurrance), "occurences to found for", document_id)
+    logger::log_info(length(occurrance), "occurences to found for", document_id)
   }
   occurrance %<>% keep(function(x)x$state!='Unused') %>% head(1)
   if (length(occurrance) == 1) {
@@ -140,7 +140,7 @@ copyBODocument <- function(conn, document, parent_folder, destination_document_n
       paste("POST copy file", document_id, "copyBODocument line 139")
     )
     content(response)
-    log_message("Copy", document_id, "to", destination_document_name, "complete", level = "message")
+    logger::log_info("Copy", document_id, "to", destination_document_name, "complete", level = "message")
     if (file.exists(".attachmentInfos")) {
       file.remove(".attachmentInfos")
     }
@@ -274,7 +274,7 @@ get_bo_document <- function(conn, document) {
   document_id <- get_bo_item_id(document)
   url <- paste0(request$url, "/v1/documents/", document_id)
   response <- GET(url, request)
-  log_message("get_bo_document 249", ifelse(response$status_code == 200, paste("Get succeeded to", url), paste("Get failed", response$status_code, content(response))))
+  logger::log_info("get_bo_document 249", ifelse(response$status_code == 200, paste("Get succeeded to", url), paste("Get failed", response$status_code, content(response))))
   document <- content(response)
   report_request_result(request, response, paste("GET document", document_id), "get_bo_document", 337)
   document
@@ -295,7 +295,7 @@ get_bo_report_inputs <- function(conn, document, inputs) {
     element <- il[3]
     get_bo_report_element_data(conn, document, report, element)
   } else {
-    log_message(level = 'error', "Unknown inputs format for",inputs)
+    logger::log_error("Unknown inputs format for",inputs)
   }
 }
 

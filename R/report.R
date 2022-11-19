@@ -27,7 +27,7 @@ get_bo_report_name <- function(report) {
 #' @export
 
 get_bo_document_report <- function(conn, document, report, skip=0) {
-  log_message("Getting report data", report, "for document", document, ";get_bo_document_report 220")
+  logger::log_info("Getting report data", "{report}", "for document", "{document}", ";get_bo_document_report 220")
   document_id = get_bo_item_id(document)
   report_name <- get_bo_report_name(report)
   reports <- get_bo_raylight_endpoint(conn, documents = document_id, reports = '')
@@ -37,7 +37,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
   reportId <- report$id
   result <- get_bo_raylight_endpoint(conn, documents = document_id, reports = reportId, accept='text/csv')
   dataset <- result %>% read_delim(delim = ";",show_col_types = FALSE, skip = skip)
-  log_message(nrow(dataset), "rows retrieved from report", report_name, "in document", document, ";get_bo_document_report 220")
+  logger::log_info(nrow(dataset), "rows retrieved from report", report_name, "in document", "{document}", ";get_bo_document_report 220")
   return(dataset)
 }
 
@@ -52,7 +52,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
 #' @export
 #' @noRd
 get_bo_report_element_data <- function(conn, document, report, element) {
-  log_message("Getting report", report, "for document", document, ";get_bo_document_report 33")
+  logger::log_info("Getting report","{report}", "for document", "{document}", ";tget_bo_document_report 33")
   document_id = get_bo_item_id(document)
   reports <- get_bo_raylight_endpoint(conn, documents = document_id, reports = '')
   report2 <- reports %>%
@@ -71,7 +71,7 @@ get_bo_report_element_data <- function(conn, document, report, element) {
   result$inputs.document_id <- document_id
   result$inputs.reportId <- reportId
   result$inputs.elementId <- elementId
-  log_message(level = 'info', "Report data retrieved", report2, "for document", document)
+  logger::log_info("Report data retrieved", "{report2}", "for document", "{document}")
   result
 }
 

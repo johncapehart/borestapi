@@ -1,6 +1,3 @@
-#' @importFrom futile.logger layout.simple layout.json
-#' @importFrom futile.logger flog.trace flog.debug flog.info flog.warn flog.error
-#' @importFrom futile.logger appender.console flog.appender flog.layout
 #' @importFrom stringr str_to_upper str_flatten
 #'
 #' @importFrom logger log_debug log_error log_errors log_fatal log_info log_warn log_trace log_with_separator
@@ -19,16 +16,8 @@ is_null_or_empty <- function(v) {
 default_logging_level <- ifelse (!is_null_or_empty(Sys.getenv("BO_DEFAULT_LOGGING_LEVEL")), Sys.getenv("BO_DEFAULT_LOGGING_LEVEL"), "DEBUG")
 
 set_logging_threshold <- function(threshold) {
-  threshold <- switch(threshold,
-                      'TRACE' = futile.logger::TRACE,
-                      'DEBUG' = futile.logger::DEBUG,
-                      'INFO' = futile.logger::INFO,
-                      'WARN' = futile.logger::WARN,
-                      'ERROR' = futile.logger::ERROR,
-                      'FATAL' = futile.logger::FATAL,
-                      futile.logger::INFO
-  )
-  threshold2 <- switch(threshold,
+  if (is.character(threshold)) {
+    threshold <- switch(threshold,
                       'TRACE' = logger::TRACE,
                       'DEBUG' = logger::DEBUG,
                       'INFO' = logger::INFO,
@@ -36,61 +25,15 @@ set_logging_threshold <- function(threshold) {
                       'ERROR' = logger::ERROR,
                       'FATAL' = logger::FATAL,
                       logger::INFO
-  )
-  futile.logger::flog.threshold(threshold=threshold, name='ROOT')
-  logger::log_threshold(threshold2)
-  lapply(loggernames, function(x)futile.logger::flog.threshold(threshold, name=x))
+    )
+    logger::log_threshold(threshold)
+  }
 }
 
 get_logging_threshold <- function() {
-  futile.logger::flog.threshold()
+  logger::log_threshold()
 }
 
-loggernames <- c('console') # c('console','file','notification')
-
-#' Initializes the logger (called from .onLoad)
-#'
-#' @return nothing
-#' @export
-
-
-logg <- function(loggername, level, s) {
-  if (!exists('logger_ready') || is_null(logger_ready) || !logger_ready) init_log()
-  switch(level,
-         'TRACE' = flog.trace(msg=s, name = loggername),
-         'DEBUG' = flog.debug(msg=s, name = loggername),
-         'INFO' = flog.info(msg=s, name = loggername),
-         'WARN' = flog.warn(msg=s, name = loggername),
-         'ERROR' = flog.error(msg=s, name = loggername),
-         flog.info(msg=s, name = loggername)
-  )
-}
-
-log_message <- function(..., trace, file = stdout(), duration = 15, level = default_logging_level) {
-  level <- stringr::str_to_upper(level)
-  s <- paste(paste(unlist(list(...)), collapse = " "), collapse = " ")
-  threshold <- get_logging_threshold()
-  # remove trailing part of message if level is DEBUG or INFO
-  s <- switch(threshold,
-              'TRACE' = s,
-              'DEBUG' = stringr::str_remove(s,';;.+$'),
-              stringr::str_remove(s,';.+$')
-  )
-  #cat(s, '\n')
-  tryCatch(
-    {
-      result <- lapply(loggernames, function(x)logg(loggername=x,level = level, s = s))
-    },
-    error = function(cond) {
-      tryCatch(
-        {
-          cat(paste("Attempted message", s), file=stderr())
-          cat(paste("Logging error", "log_message 161", cond, level), file = stderr())
-        }
-      )
-    }
-  )
-}
 
 #' Title
 #'
@@ -141,12 +84,6 @@ split_message<-function(msg, level) {
 }
 
 init_log <- function() {
-  flog.layout(layout.json)
-  flog.appender(appender.console(), name='console')
-  flog.layout(layout.simple, name='console')
-  set_logging_threshold(Sys.getenv("BO_LOGGING_THRESHOLD"))
-  logger_ready <<- TRUE
-
   console_layout <- logger::layout_glue_generator(
     format = paste(
       '{crayon::bold(my_log_colorize(level, levelr))}',
@@ -155,11 +92,12 @@ init_log <- function() {
       '{split_message(msg, levelr)}'))
 
   logger::log_layout(console_layout)
-  threshold0 <- Sys.getenv("BO_LOGGING_THRESHOLDxxx")
+  threshold0 <- Sys.getenv("BO_LOGGING_THRESHOLD")
   if (is_null_or_empty(threshold0)) {
     threshold0 <- logger::INFO
   }
   logger::log_threshold(threshold0)
+  logger_ready <<- TRUE
 }
 
 

@@ -165,7 +165,7 @@ delete_bo_spreadsheet <- function(conn, filename, parent_folder) {
 #' @export
 upload_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = filename) {
   request <- check_bo_connection(conn)
-  log_message("Upload excel file",  filename, ";;upload_bo_spreadsheet 141", duration = 60)
+  logger::log_info("Upload excel file",  filename, ";;upload_bo_spreadsheet 141", duration = 60)
   sheet <- get_bo_item(conn, filename, parent_folder = parent_folder, kind = "Excel")
   if (nrow(sheet)) {
     sheet <- put_bo_spreadsheet(conn, filename, sheet_id = sheet$SI_ID, filepath)
