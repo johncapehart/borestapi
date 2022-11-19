@@ -1,44 +1,5 @@
 #---------------------------
 
-#' POST a new spreadsheet to BO folder
-#'
-#' @param conn Connection reference
-#' @param filename Name for spreasheet file
-#' @param parent_folder Numeric id of the parent folder
-#' @param filepath Path to spreadsheet file (including name)
-#' @param format HTTP body format to use
-#'
-#' @return Response content
-#'
-#' @noRd
-post_bo_spreadsheet_raw <- function(conn, filename, parent_folder, filepath = filename, format = 'json') {
-  request <- check_bo_connection(conn)
-  mimeType <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  mimeType <- 'application/vnd.ms-excel'
-  url <- paste0(request$url, "/raylight/v1/spreadsheets")
-    boundary <- '------------------------dcaca6aa0076de4e'
-  boundary2 <- paste0('--', boundary)
-  request$headers[["Accept"]] <- "application/json"
-  request$headers[["Accept-Encoding"]] <- "gzip, deflate"
-  request$headers[["Content-Type"]] <- paste0("multipart/form-data; boundary=",boundary)
-  fileData <- readBin(filepath, "raw")
-  con = file("body.txt", "wb")
-  writeBin(paste0(boundary2, "\r\n", "Content-Disposition: form-data; name=\"attachmentInfos\"\r\nContent-Type: application/json\r\n\r\n",
-                  '{"spreadsheet":{"name":"',filename,'","folderid":',parent_folder,'}}\r\n',
-                  boundary2,"\r\n",
-                  "Content-Disposition: form-data; name=\"attachmentContent\"\r\n",
-                  "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n\r\n"), con=con)
-  writeBin(fileData, con=con)
-  writeBin(paste0(boundary2,"--"), con=con)
-  close(con)
-  con = file("body.txt", "rb")
-  body = read_file_raw("body.txt")
-  #url <- request$url <- http://localhost:8888' # for test capture by nc -kl 8888
-  response <-POST(url, body = body, request)
-  report_request_result(request, response, paste("POST upload of file", filename, parent_folder), "post_bo_spreadsheet_raw", 51)
-  return(content(response))
-}
-
 get_bo_spreadsheet_attachmentInfos <- function(filename, parent_folder, format = 'json') {
   #filename = gsub('.xlsx','',filename)
   if (format == 'json') {
@@ -71,7 +32,6 @@ get_bo_spreadsheet_attachmentInfos <- function(filename, parent_folder, format =
 post_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = filename, format = 'json') {
   request <- check_bo_connection(conn)
   mimeType <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  #mimeType <- 'application/vnd.ms-excel'
   url <- paste0(request$url, "/raylight/v1/spreadsheets")
   request$headers = add_bo_headers(request$headers)
   .body0 <- get_bo_spreadsheet_attachmentInfos(filename, parent_folder, format = format)

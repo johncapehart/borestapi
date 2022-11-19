@@ -1,32 +1,18 @@
 #' @importFrom methods hasArg new
-#' @importFrom methods hasArg new
+#' @importFrom httr2 request
 #' @importFrom utils head tail timestamp
 #' @importFrom stats filter
 #' @importFrom magrittr %<>% %>%
-#' @importFrom httr GET POST PUT DELETE add_headers upload_file content config
-#' @importFrom httr2 request req_headers req_options
-#' @importFrom httr2 req_body_json req_body_file req_body_raw req_body_multipart
-#' @importFrom httr2 req_perform req_dry_run
-#' @importFrom httr2 resp_status resp_body_json resp_body_xml resp_body_html resp_body_string
 #' @importFrom jsonlite toJSON fromJSON
 #' @include api-utils.R
 #'
 # prerequisites ----------------------------------------------------------------
 
-# Create reference class for httr::request
+# Create reference class for httr2::request
 
-structure(
-  list(
-    httr_request = add_headers(),
-    httr2_request = httr2::request("https://")
-  ),
-  class = "myrequest"
-)
-
-setOldClass("request")
 setOldClass("httr2_request")
-setRefClass("request_reference_class", fields = list(request='request', request2='httr2_request'))
-new_bo_request_reference <- setRefClass("request_reference_class", fields = list(request = "request", request2 = "httr2_request"))
+setRefClass("request_reference_class", fields = list(request='httr2_request'))
+new_bo_request_reference <- setRefClass("request_reference_class", fields = list(request = "httr2_request"))
 
 get_home_path <- function() {
   home_path <- path.expand('~')
@@ -47,29 +33,10 @@ listToJSON <- function(list) {
 #'
 #' @return Response content or NULL
 #' @export
-get_user_rights <- function(conn) {
-  # a POST query of item SI_ID = 1 is the test of a token
-  httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate check
-  url = paste0(conn$request$url, '/raylight/v1/session/rights')
-  response <- GET(url, conn$request)
-  if (response$status_code == 200) {
-    return(content(response))
-  }
-  return(NULL)
-}
-
-#' Get user rights on the BO server
-#'
-#' @param conn connection reference
-#'
-#' @return Response content or NULL
-#' @export
-get_user_rights2 <- function(conn) {
-  # a POST query of item SI_ID = 1 is the test of a token
-  request <- conn$request2
+get_user_rights <- function(request) {
   request$url = paste0(request$url, '/raylight/v1/session/rights')
-  response <- req_perform(request)
-  if (resp_status(response) == 200) {
+  response <- httr2::req_perform(request)
+  if (httr2::resp_status(response) == 200) {
     return(httr2::resp_body_json(response))
   }
   return(NULL)
@@ -83,12 +50,9 @@ get_user_rights2 <- function(conn) {
 #' @return TRUE if connection is valid, FALSE otherwise
 #' @export
 #' @noRd
-check_bo_connection_state <- function(conn) {
-  if (hasArg("conn") && !is.null(conn)) {
-    rights <- get_user_rights(conn)
+check_bo_connection_state <- function(request) {
+    rights <- get_user_rights(request)
     return(!is_empty(rights))
-  }
-  return(FALSE)
 }
 
 clear_token_header <- function(conn) {
@@ -99,29 +63,27 @@ try_token <- function(conn, server, token) {
   logger::log_info("Trying token from database", ";d", "{token}", ";;try_token line 68")
   result <- tryCatch({
       # this sets the token in the mutable connection
-      conn$request$headers[["X-SAP-LogonToken"]] <- token
-      if (USE_HTTR2) {
-        conn$request2 <- conn$request2 %>% req_headers("X-SAP-LogonToken" = token)
+      request <- conn$request %>% httr2::req_headers("X-SAP-LogonToken" = token)
+      if (check_bo_connection_state(request)) {
+        conn$request %<>% httr2::req_headers("X-SAP-LogonToken" = token)
+        TRUE
+      } else {
+        FALSE
       }
-      check_bo_connection_state(conn = conn)
     }, error = function(cond) {
       FALSE
   })
-  if (!result) {
-    clear_token_header(conn)
-  }
   return(result)
 }
 
 check_bo_connection <- function(conn) {
   if (rlang::is_empty(conn)) {
-    logger::log_error("Empty connection reference",";check_bo_connection 83")
+    logger::log_error("Empty connection reference",";t check_bo_connection 83")
   }
   if (class(conn) == "request_reference_class") {
-    if (check_bo_connection_state(conn)) {
+    if (check_bo_connection_state(conn$request)) {
       return(conn$request)
     } else {
-      # reopen the connection using conn$request$username and conn$request$user_password
       open_bo_connection(conn=conn)
       return(conn$request)
     }
@@ -139,7 +101,7 @@ check_bo_connection <- function(conn) {
 #' @noRd
 get_cached_token <- function(conn, server, username) {
   tokens <- get_saved_items(username, server)$value # get matching tokens
-  if (!is.null(tokens) && length(tokens) > 0) {
+  if (!is_empty(tokens) && length(tokens) > 0) {
     for (i in 1:length(tokens)) {
       token <- tokens[i]
       if (try_token(conn = conn, server=server, token = token)) {
@@ -163,22 +125,21 @@ get_new_token <- function(conn, server, username, password = NULL) {
     "username" = username,
     "password" = password,
     "auth" = "secWinAD"
-  ) %>% listToJSON()
-  url <- paste0(conn$request$url, "/v1/logon/long") # append longon endpoint to url
-  response <- POST(url = url, body = body, conn$request)
+  )
+  request <- conn$request
+  request$url <- paste0(conn$request$url, "/v1/logon/long") # append longon endpoint to url
+  request %<>% httr2::req_body_json(body)
+  response <- httr2::req_perform(request)
   report_request_result(conn$request, response, "New connection", "open_bo_connection line 146")
-  token <- content(response)$logontoken
+  token <- httr2::resp_body_json(response)$logontoken
   if (!is.null(token) && str_length(token) > 0) {
-    conn$request$headers[["X-SAP-LogonToken"]] <- token
-    if (USE_HTTR2) {
-        conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
-    }
+    conn$request %<>% httr2::req_headers("X-SAP-LogonToken" = token)
     save_item(username, server, token, table_name = get_token_table_name())
+    log_with_separator("New token for ", paste(server, username), separator='+', width=120)
+    log_debug(paste0("{token}"))
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
   }
-  log_with_separator("New token for ", paste(server, username), separator='+', width=120)
-  log_debug(paste0("{token}"))
   return(TRUE)
 }
 
@@ -188,21 +149,13 @@ get_new_request <- function(conn, server, username) {
   if (!hasArg("conn") || is.null(conn)) {
     conn <- new_bo_request_reference() # make a new empty request reference
   }
-  # set request headers
-  conn$request <-
-    add_headers("Accept" = "application/json",
-                "Content-Type" = "application/json",
-                "Host" = server)
-  # set base url
   base_url <- paste0("https://", server, "/biprws")
-  conn$request$url <- base_url
-  if (USE_HTTR2) {
-      conn$request2 <- httr2::request(base_url) %>%
-      req_headers("Accept" = "application/json") %>%
-      req_headers("Content-Type" = "application/json") %>%
-      req_headers("Host" = server) %>%
-      req_options(ssl_verifypeer = 0)
-  }
+  # set request headers
+  conn$request <- httr2::request(base_url) %>%
+    httr2::req_headers("Accept" = "application/json") %>%
+    httr2::req_headers("Content-Type" = "application/json") %>%
+    httr2::req_headers("Host" = server) %>%
+    httr2::req_options(ssl_verifypeer = 0)
   log_info("Created connection to", base_url)
   conn
 }
@@ -235,7 +188,6 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
   } else {
     conn <- get_new_request(conn, server, username)
   }
-  httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate checks
   # search for valid token matching server and username
   if (get_cached_token(conn, server, username)) {
      return(conn)
@@ -247,7 +199,7 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
   }
   if (!is_empty(password2) && get_new_token(conn, server, username, password2)) {
     if (save_password) {
-      if (password2 != password) {
+      if (is_empty(password) || password2 != password) {
         set_user_password(username, server, password2)
       }
     } else {

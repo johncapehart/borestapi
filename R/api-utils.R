@@ -1,4 +1,3 @@
-USE_HTTR2 <- FALSE
 
 #' Report error in API call
 #'
@@ -128,13 +127,16 @@ get_bo_item <- function(conn, name = NULL, parent_folder = NULL, kind = NULL, ow
   )
   query <- append_query_conditions(query, name, parent_folder, kind, owner, id)
   #query <- paste(query, "ORDER BY SI_NAME ASC SI_CREATION_TIME DESC") # ORDER BY not supported
-  body <- list("query" = query) %>% listToJSON()
-  url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
-  response <- POST(url = url, body = body, request)
-  report_request_result(request, response, ";CMS Query", query,  ";;get_bo_item 129")
-  results <- bind_bo_query_results_to_tibble(content(response)$entries)
-  if (nrow(results) > 1) {
-    results <- dplyr::distinct(results, SI_ID, .keep_all=TRUE)
+  body <- list("query" = query)
+  request %<>% httr2::req_body_json(body)
+  request$url <- paste0(request$url, "/v1/cmsquery?page=1&pagesize=50")
+  response <- httr2::req_perform(request)
+  report_request_result(request, response, ";CMS Query", query,  ";t get_bo_item 135")
+  if (response$status_code==200) {
+    results <- bind_bo_query_results_to_tibble(httr2::resp_body_json(response)$entries)
+    if (nrow(results) > 1) {
+      results <- dplyr::distinct(results, SI_ID, .keep_all=TRUE)
+    }
   }
   return(results)
 }
@@ -156,23 +158,24 @@ paste_url <- function(...) {
     paste(..., sep = "/")))
 }
 
-flatten_scalars <- function(x) {
+flatten_scalars <- function(list) {
   # recursiviely unwrap lists with one named item
-  while (length(names(x)) == 1)
-    x %<>% pluck(names(x))
-  x
+  while (length(names(list)) == 1)
+    list %<>% purrr::pluck(names(list))
+  result <- list %>% purrr::map(purrr::flatten_dfr) %>% bind_rows()
+  result
 }
 
 return_bo_response_content <- function(response) {
   if (response$headers[['content-type']] %>% str_detect('json')) {
-    # fromJSON worked better here than the json paraser in httr
-    result <- content(response, as = "text", encoding = "UTF-8") %>% fromJSON(simplifyVector = TRUE, simplifyDataFrame = TRUE)
-    result %>% flatten_scalars()
+    result <- httr2::resp_body_json(response)
+    result2 <- flatten_scalars(result)
+    return(result2)
   } else if (response$headers[['content-type']] %>% str_detect('text')) {
-    content(response, as = "text", encoding = "UTF-8")
+    httr2::resp_body_string(response)
   } else {
     # otherwise some kind of raw content
-    content(response, as = "raw")
+    httr2::resp_body_raw(response)
   }
 }
 
@@ -186,7 +189,8 @@ get_bo_raylight_endpoint <- function(conn, ..., querystring, accept=NULL) {
   if (!is_empty(accept)) {
     request$headers[['Accept']]=accept
   }
-  response <- GET(url = url, request)
+  request$url <- url
+  response <- httr2::req_perform(request)
   report_request_result(request, response, ";Children", "get_bo_raylight_endpoint 197")
   return_bo_response_content(response)
 }
@@ -198,12 +202,12 @@ put_bo_raylight_endpoint <- function(conn, ..., querystring, body = NULL) {
   if (!is_null_or_empty(querystring)) {
     url <- paste0(url, querystring)
   }
-  if (!is.null(body) &&
-      !is.character(body) &&
-      request$headers[['Content-Type']] %>% str_detect('json')) {
-    body <- body %>% toJSON()
+  request$url <- url
+  if (!is.null(body)) {
+      request %<>% httr2::req_body_json(body)
   }
-  response <- PUT(url = url, body = body, request)
+  request %<>% httr2::req_method('PUT')
+  response <- httr2::req_perform(request)
   report_request_result(request, response, ";Children", "put_bo_raylight_endpoint 214")
   return_bo_response_content(response)
 }

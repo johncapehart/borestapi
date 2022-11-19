@@ -4,7 +4,7 @@
 \alias{get_user_rights}
 \title{Get user rights on the BO server}
 \usage{
-get_user_rights(conn)
+get_user_rights(request)
 }
 \arguments{
 \item{conn}{connection reference}

@@ -1,4 +1,3 @@
-#' @importFrom purrr quietly pluck
 #' @importFrom tibble tibble enframe as_tibble is_tibble
 #' @importFrom tidyr pivot_wider
 #' @include api-utils.R

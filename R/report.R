@@ -37,7 +37,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
   reportId <- report$id
   result <- get_bo_raylight_endpoint(conn, documents = document_id, reports = reportId, accept='text/csv')
   dataset <- result %>% read_delim(delim = ";",show_col_types = FALSE, skip = skip)
-  logger::log_info(nrow(dataset), "rows retrieved from report", report_name, "in document", "{document}", ";get_bo_document_report 220")
+  logger::log_info(paste(nrow(dataset), "rows retrieved from report", report_name, "in document", "{document}", ";get_bo_document_report 220"))
   return(dataset)
 }
 
