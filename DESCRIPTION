@@ -18,7 +18,6 @@ Imports:
     digest,
     dplyr,
     glue,
-    httr,
     httr2,
     jsonlite,
     lifecycle,
