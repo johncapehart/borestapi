@@ -8,6 +8,13 @@
 \description{
 An R interface to the SAP Business Objects REST API. Use it to: Retrieve data from Business Object document report tabs. Upload Excel spreadsheets to Business Objects Retrieve data from a Busines Objects document data source Set document filters and refresh document data
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://johncapehart.github.io/borestapi/}
+}
+
+}
 \author{
 \strong{Maintainer}: John Capehart \email{R@jcapehart.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
 

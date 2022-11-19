@@ -14,3 +14,13 @@ test_that("saving secret works", {
   result <- get_saved_items('foo', Sys.getenv('BO_SERVER'))
   expect_equal(nrow(result), 0)
 })
+
+test_that("saving password works", {
+  password <- 'password'
+  set_user_password('foo', Sys.getenv('BO_SERVER'), password)
+  result <- get_user_password('foo', Sys.getenv('BO_SERVER'))
+  expect_equal(password, result)
+  clear_user_password('foo', Sys.getenv('BO_SERVER'))
+  result <- get_user_password('foo', Sys.getenv('BO_SERVER'))
+  expect_equal(is_empty(result), TRUE)
+})

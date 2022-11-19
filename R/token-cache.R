@@ -48,8 +48,12 @@ close_database <- function(db_conn) {
   dbDisconnect(db_conn)
 }
 
-get_table <- function(db_conn, table_name = 'tokens') {
+get_table <- function(db_conn, table_name = get_token_table_name()) {
   dbListTables(db_conn) %>% keep(~ .x == table_name)
+}
+
+get_token_table_name <- function() {
+  'tokens'
 }
 
 #' Clear a table
@@ -58,7 +62,7 @@ get_table <- function(db_conn, table_name = 'tokens') {
 #'
 #' @export
 #' @noRd
-clear_table <- function(table_name= 'tokens') {
+clear_table <- function(table_name= get_token_table_name()) {
   db_conn <- open_database()
   rs <- RSQLite::dbSendStatement(db_conn, paste0("DELETE FROM ", table_name))
   RSQLite::dbClearResult(rs)
@@ -66,11 +70,11 @@ clear_table <- function(table_name= 'tokens') {
   close_database(db_conn)
 }
 
-get_table_row_count <- function(table_name= 'tokens') {
+get_table_row_count <- function(table_name= get_token_table_name()) {
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
   if ((length(table) > 0)) {
-    tokens <- dbReadTable(db_conn, "tokens")
+    tokens <- dbReadTable(db_conn, table_name)
     result <- nrow(tokens)
   } else {
     result <- 0
@@ -81,16 +85,16 @@ get_table_row_count <- function(table_name= 'tokens') {
 
 # Item operations ----------------------------------------------------------------
 
-get_saved_items <- function(username, server, table_name = 'tokens') {
+get_saved_items <- function(username, server, table_name = get_token_table_name()) {
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
   items <- NULL
   if ((length(table) > 0)) {
-      items <- dbReadTable(db_conn, "tokens")
+      items <- dbReadTable(db_conn, table_name)
       items %<>% dplyr::filter(serverkey == server) %>%
         dplyr::filter(usernamekey == username) %>%
         dplyr::arrange(timestamp)
-      log_debug("get_saved_items item count", nrow(filtered_items), ";t get_saved_tokens line 328")
+      log_debug("get_saved_items item count", nrow(items), ";t get_saved_tokens line 328")
       if (nrow(items) > 0) {
         items %<>% mutate(value = decrypt_object(base64enc::base64decode(value)))
       }
@@ -101,7 +105,7 @@ get_saved_items <- function(username, server, table_name = 'tokens') {
   return(items)
 }
 
-remove_item <- function(username, server, table_name = 'tokens') {
+remove_item <- function(username, server, table_name = get_token_table_name()) {
   log_debug("removing item", username, server, table_name, ";remove_item line 316")
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
@@ -113,7 +117,7 @@ remove_item <- function(username, server, table_name = 'tokens') {
   close_database(db_conn)
 }
 
-save_item <- function(username, server, value, table_name = 'tokens') {
+save_item <- function(username, server, value, table_name = get_token_table_name()) {
   db_conn <- open_database()
   value <- base64enc::base64encode(encrypt_object(value))
   new_values <- tibble(timestamp = now(), usernamekey = username, serverkey = server, value)
@@ -134,7 +138,12 @@ get_password_table_name <- function() {
   'credentials'
 }
 
+get_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER')) {
+  get_saved_items(username, server, table_name = get_password_table_name())$value
+}
+
 set_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), password) {
+  clear_user_password(username, server)
   save_item(username, server, table_name = get_password_table_name(), value = password)
 }
 

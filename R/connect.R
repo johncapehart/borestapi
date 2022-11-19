@@ -149,7 +149,7 @@ get_cached_token <- function(conn, server, username) {
       } else {
         log_with_separator("Removing token for ", paste(server, username), separator='-', width=120)
         log_debug(paste0("{token}"))
-        remove_cached_token(token)
+        remove_item(username, server, table_name = get_token_table_name())
       }
     }
   }
@@ -173,7 +173,7 @@ get_new_token <- function(conn, server, username, password = NULL) {
     if (USE_HTTR2) {
         conn$request2 <- req_headers(conn$request2, "X-SAP-LogonToken" = token)
     }
-    save_item(username, server, token, table_name = 'tokens')
+    save_item(username, server, token, table_name = get_token_table_name())
   } else {
     stop(paste("Logon to ", server, "as", username, "failed"))
   }
@@ -236,23 +236,22 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
     conn <- get_new_request(conn, server, username)
   }
   httr::set_config(config(ssl_verifypeer = 0L)) # skip certificate checks
-  # reset request
+  # search for valid token matching server and username
   if (get_cached_token(conn, server, username)) {
-    # search for valid token matching server and username
-    return(conn)
+     return(conn)
   }
   if (is_empty(password)) {
-    password2 <- get_saved_items(username, server, table_name = get_password_table_name())
+    password2 <- get_user_password(username, server)
   } else {
     password2 <- password
   }
-  if (get_new_token(conn, server, username, password2)) {
+  if (!is_empty(password2) && get_new_token(conn, server, username, password2)) {
     if (save_password) {
       if (password2 != password) {
-        save_item(username, server, password2, table_name = get_password_table_name())
+        set_user_password(username, server, password2)
       }
     } else {
-      remove_item(username, server, table_name = get_password_table_name())
+      clear_user_password(username, server)
     }
     return(conn)
   }
