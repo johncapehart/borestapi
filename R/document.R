@@ -1,3 +1,4 @@
+#' @importFrom magrittr %<>% %>%
 #' @importFrom tibble tibble enframe as_tibble is_tibble
 #' @importFrom tidyr pivot_wider
 #' @include api-utils.R
@@ -20,10 +21,10 @@ testNumericArgument <- function(x) {
 get_bo_document_data <- function(conn, document, provider_id, ...) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
-  request$headers[["Accept"]] <- "text/plain"
-  url <- paste(url, provider_id, "flows/0", sep = "/")
-  response <- GET(url = url, request)
-  df <- content(response, as = "text", encoding = "UTF-8") %>% read_delim(delim = ";", show_col_types = FALSE, ...)
+  request %<>% httr2::req_headers("Accept" = "text/plain")
+  request$url <- paste(request$url, provider_id, "flows/0", sep = "/")
+  response <- httr2::req_perform(request)
+  df <- httr2::resp_body_string(response) %>% read_delim(delim = ";", show_col_types = FALSE, ...)
   report_request_result(request, response, paste("Get document data rows", nrow(df), "columns", ncol(df)), "get_bo_document_data", 246)
   df
 }
@@ -39,10 +40,10 @@ get_bo_document_data <- function(conn, document, provider_id, ...) {
 close_bo_document <- function(conn, document, save = FALSE) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
-  url <- paste(request$url, "raylight/v1/documents", document_id, "occurrences", sep = "/")
-  response <- GET(url, request)
+  request$url <- paste(request$url, "raylight/v1/documents", document_id, "occurrences", sep = "/")
+  response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";GET occurances", document_id), "close_bo_document", 55)
-  occurrance <- content(response)$occurrences$occurrence
+  occurrance <- httr2::resp_body_json()$occurrences$occurrence
   if (length(occurrance) == 0) {
     logger::log_info("No occurences to close for", document_id)
     return()
@@ -58,9 +59,11 @@ close_bo_document <- function(conn, document, save = FALSE) {
     } else {
       body <- list("occurrence" = list(state = 'Unused')) %>% listToJSON()
     }
-    response <- PUT(url, body = body, request)
+    request %<>% httr2::req_body_json(body) %>% req_method('PUT')
+    request %<>% httr2::req_url(url)
+    response <- httr2::req_perform(request)
     report_request_result(request, response, paste("Closing document", document$SI_Name, ";PUT occurance", occurrance[['state']]), "close_bo_document", 71)
-    return_bo_response_content(response)
+    httr2::resp_body_json(response)
   }
 }
 
@@ -74,15 +77,15 @@ close_bo_document <- function(conn, document, save = FALSE) {
 #' @return Response content
 #' @export
 #' @noRd
-post_bo_document <- function(conn, filepath, filename, parent_folder) {
+post_bo_document <- function(conn, filename, parent_folder, filepath = filename) {
   request <- check_bo_connection(conn)
-  .body <- upload_file(filepath)
-  request$headers[["Accept"]] <- "*/*"
-  request$headers[["Accept-Encoding"]] <- "gzip, deflate"
-  request$headers[["Content-Type"]] <- "multipart/form-data"
-  url <- paste0(request$url, "/infostore/folder/", parent_folder, "/file")
-  response <- POST(url, body = list(y = .body), request)
+  request %<>% httr2::req_body_file(path=filepath) %>% httr2::req_headers("Accept" = "*/*",
+    "Accept-Encoding" = "gzip, deflate",
+    "Content-Type" = "multipart/form-data"
+  ) %>% httr2::req_url_path_append("infostore/folder", parent_folder, "/file")
+  response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";POST", filepath,filename), "post_bo_document", 83)
+  httr2::resp_body_json(request)
 }
 
 #' Upload an existing BO Webi document
@@ -97,12 +100,13 @@ post_bo_document <- function(conn, filepath, filename, parent_folder) {
 #' @noRd
 put_bo_document <- function(conn, filepath, filename, document_id) {
   request <- check_bo_connection(conn)
-  .body <- upload_file(filepath)
-  request$headers[["Accept"]] <- "*/*"
-  request$headers[["Accept-Encoding"]] <- "gzip, deflate"
-  request$headers[["Content-Type"]] <- "multipart/form-data"
-  url <- paste0(request$url, "/v1/documents/", document_id)
-  response <- PUT(url, body = list(y = .body), request)
+  request %<>% httr2::req_body_file(path=filepath) %>%
+    httr2::req_headers("Accept" = "*/*",
+      "Accept-Encoding" = "gzip, deflate",
+      "Content-Type" = "multipart/form-data"
+    ) %>% httr2::req_url_path_append(paste("infostore/folder", parent_folder, "file")) %>%
+    httr2::req_method('PUT')
+  response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";PUT", filepath,filename,document_id), "put_bo_document", 94)
 }
 
@@ -119,37 +123,27 @@ put_bo_document <- function(conn, filepath, filename, document_id) {
 copyBODocument <- function(conn, document, parent_folder, destination_document_name) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
-    json <-
-      list("document" = list("name" = destination_document_name)) %>% listToJSON()
-    write(json, ".attachmentInfos")
-    .body0 <-
-      upload_file(".attachmentInfos", type = "application/json")
-    url <-
-      paste0(request$url, "/raylight/v1/documents?sourceId=", document_id)
-    response <-
-      POST(
-        url,
-        body = .body0,
-        encode = "json",
-        request
-      )
-    report_request_result(
-      request,
-      response,
-      paste("POST copy file", document_id, "copyBODocument line 139")
-    )
-    content(response)
-    logger::log_info("Copy", document_id, "to", destination_document_name, "complete", level = "message")
-    if (file.exists(".attachmentInfos")) {
-      file.remove(".attachmentInfos")
-    }
+  body <- list("document" = list("name" = destination_document_name))
+  request %<>% httr2::req_body_json(body)
+  request %<>% httr2::req_url_path_append('/raylight/v1/documents') %>%
+    httr2::req_url_query("sourceId=", document_id)
+  response <- httr2::req_perform()
+  report_request_result(
+    request,
+    response,
+    paste("POST copy file", document_id, "copyBODocument line 139")
+  )
+  logger::log_info("Copy", document_id, "to", destination_document_name, "complete", level = "message")
+  httr2::resp_body_json(response)
 }
 
 delete_bo_document <- function(conn, document_id) {
   request <- check_bo_connection(conn)
-  url <- paste0(request$url, "/v1/documents/", document_id)
-  response <- DELETE(url, request)
+  request %<>% httr2::req_url_path_append("/v1/document/", document_id) %>%
+    httr2::req_method('DELETE')
+  response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";DELETE",document_id), "delete_bo_document", 101)
+  httr2::resp_body_json(response)
 }
 
 get_bo_document_controls <- function(conn, document) {
@@ -161,7 +155,7 @@ get_bo_document_control_selection <- function(conn, document, control_name) {
   document_id <- get_bo_item_id(document)
   inputcontrols <-get_bo_document_controls(conn, document)
   inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  result <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
+  get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
 }
 
 #' Title
@@ -232,12 +226,13 @@ set_bo_document_data_source_date_range <- function(conn, document, dataprovider,
   dp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders='')
   dp %>% dplyr::filter(name == dataprovider)
   sdp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id[1])
-  request$headers[['Accept']]<-'text/xml'
+  request %<>% httr2::req_headers('Accept' = 'text/xml')
   spc <- get_bo_raylight_endpoint(request, documents=document_id, dataproviders=sdp$id, specification='')
   dates <- str_extract_all(spc, 'value="[0-9]{13}" type="Date"') %>% map(~str_extract(., pattern='[0-9]{13}')) %>% unlist()
   spc<-str_replace(spc, dates[1], dateToBOQueryFilterDate(startDate)) %>% str_replace(pattern = dates[2], replacement = dateToBOQueryFilterDate(endDate))
-  request$headers[['Content-Type']]<-'text/xml'
-  request$headers[['Accept']]<-'application/json'
+  request %<>% httr2::req_headers('Content-Type'= 'text/xml',
+    'Accept' = 'application/json'
+  )
   put_bo_raylight_endpoint(request, documents=document_id, dataproviders=dp$id[1], specification='', body = spc)
 }
 
@@ -269,33 +264,12 @@ refresh_bo_document <- function(conn, document, dataSourceType = NULL) {
 #' @export
 get_bo_document <- function(conn, document) {
   request <- check_bo_connection(conn)
-  request$headers[["Accept-Encoding"]] <- "gzip, deflate"
+  request %<>% httr2::req_headers("Accept-Encoding" = "gzip, deflate")
   document_id <- get_bo_item_id(document)
-  url <- paste0(request$url, "/v1/documents/", document_id)
-  response <- GET(url, request)
+  request %<>% httr2::req_url_path_append("/v1/documents", document_id)
+  response <- httr2::req_perform()
   logger::log_info("get_bo_document 249", ifelse(response$status_code == 200, paste("Get succeeded to", url), paste("Get failed", response$status_code, content(response))))
   document <- content(response)
-  report_request_result(request, response, paste("GET document", document_id), "get_bo_document", 337)
-  document
+  httr2::req_body_json(request)
 }
-
-#' Get inputs from a report table
-#'
-#' @param conn Connection reference
-#' @param document Document as numeric id or tibble of properties
-#' @param inputs Name of report inputs as path "reports/report/element"
-#'
-#' @return Inputs as tibble
-#' @export
-get_bo_report_inputs <- function(conn, document, inputs) {
-  il <- str_split(inputs, '/') %>% unlist()
-  if (il[1] == 'reports') {
-    report <- il[2]
-    element <- il[3]
-    get_bo_report_element_data(conn, document, report, element)
-  } else {
-    logger::log_error("Unknown inputs format for",inputs)
-  }
-}
-
 

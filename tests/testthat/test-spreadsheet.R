@@ -3,17 +3,18 @@ test_that(paste("Cars dataframe uploads to BO"), {
 
   df <- tibble(mtcars)
   df <- head(df, 11)
-  file <- 'test.xlsx'
+  filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
+  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
   library(openxlsx)
   wb2 <- createWorkbook(mtcars)
   sheet <- wb2 %>% addWorksheet('Cars')
   writeDataTable(wb2, sheet, df)
-  saveWorkbook(wb2, file, overwrite = TRUE)
+  saveWorkbook(wb2, filename, overwrite = TRUE)
 
-  upload_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
-  sheet2 <- get_bo_spreadsheet(conn, file, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+  upload_bo_spreadsheet(conn, filename, parent_folder = folder_id)
+  sheet2 <- get_bo_spreadsheet(conn, filename, parent_folder = folder_id)
   expect_equal(sheet2$spreadsheet$sheets$sheet[[1]], "Cars")
-  file.remove(file)
+  file.remove(filename)
 })
 
 # test_that(paste("Delete test spreadsheet"), {

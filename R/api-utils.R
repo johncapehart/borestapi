@@ -141,13 +141,6 @@ get_bo_item <- function(conn, name = NULL, parent_folder = NULL, kind = NULL, ow
   return(results)
 }
 
-add_bo_headers <- function(headers) {
-  headers[["Accept"]] <- "application/json"
-  headers[["Accept-Encoding"]] <- "gzip, deflate"
-  headers[["Content-Type"]] <- "multipart/form-data"
-  return(headers)
-}
-
 paste_url <- function(...) {
   x <- list(...)
   n <- names(x)
@@ -162,8 +155,11 @@ flatten_scalars <- function(list) {
   # recursiviely unwrap lists with one named item
   while (length(names(list)) == 1)
     list %<>% purrr::pluck(names(list))
-  result <- list %>% purrr::map(purrr::flatten_dfr) %>% bind_rows()
-  result
+  list
+}
+
+bind_list <- function(list) {
+  list %>% purrr::map(purrr::flatten_dfr) %>% bind_rows()
 }
 
 return_bo_response_content <- function(response) {

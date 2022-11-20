@@ -24,7 +24,7 @@ get_home_path <- function() {
 listToJSON <- function(list) {
   list %>%
     toJSON() %>%
-    gsub("(\\[|])", "", .)
+    gsub("(\\[|])", "", .) # remove array brackets
 }
 
 #' Get user rights on the BO server
@@ -53,10 +53,6 @@ get_user_rights <- function(request) {
 check_bo_connection_state <- function(request) {
     rights <- get_user_rights(request)
     return(!is_empty(rights))
-}
-
-clear_token_header <- function(conn) {
-  conn$request$headers <- conn$request$headers[!names(conn$request$headers)%in% c("X-SAP-LogonToken")]
 }
 
 try_token <- function(conn, server, token) {
@@ -155,6 +151,7 @@ get_new_request <- function(conn, server, username) {
     httr2::req_headers("Accept" = "application/json") %>%
     httr2::req_headers("Content-Type" = "application/json") %>%
     httr2::req_headers("Host" = server) %>%
+    httr2::req_headers("User" = username) %>%
     httr2::req_options(ssl_verifypeer = 0)
   log_info("Created connection to", base_url)
   conn
@@ -184,6 +181,8 @@ open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
   if (!is_empty(conn)) {
     if (check_bo_connection_state(conn)) {
       return(conn)
+    } else {
+      username = conn$request$headers
     }
   } else {
     conn <- get_new_request(conn, server, username)
