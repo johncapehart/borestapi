@@ -40,7 +40,7 @@ than one item is returned by the query the tibble will contain multiple rows
 }
 \examples{
 # get the id of an item. Normally you would call open_bo_connection()
-conn= open_bo_connection(); get_bo_item(conn,name='test'),folder=3944223)$SI_ID
+conn= open_bo_connection(); get_bo_item(conn, name='test',parent_folder=3944223)$SI_ID
 # get all the Excel documents in a folder
-get_bo_item(open_bo_connection(),parent_folder = 3944223, kind = 'Excel'))
+get_bo_item(open_bo_connection(),parent_folder = 3944223, kind = 'Excel')
 }

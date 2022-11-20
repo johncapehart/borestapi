@@ -115,10 +115,10 @@ bind_bo_query_results_to_tibble <- function(entries) {
 #' @return Tibble of item properties
 #' @examples
 #' # get the id of an item. Normally you would call open_bo_connection()
-#' conn= open_bo_connection(); get_bo_item(conn,name='test'),folder=3944223)$SI_ID
+#' conn= open_bo_connection(); get_bo_item(conn, name='test',parent_folder=3944223)$SI_ID
 #' @examples
 #' # get all the Excel documents in a folder
-#' get_bo_item(open_bo_connection(),parent_folder = 3944223, kind = 'Excel'))
+#' get_bo_item(open_bo_connection(),parent_folder = 3944223, kind = 'Excel')
 #' @export
 get_bo_item <- function(conn, name = NULL, parent_folder = NULL, kind = NULL, owner = NULL, id = NULL) {
   request <- check_bo_connection(conn)

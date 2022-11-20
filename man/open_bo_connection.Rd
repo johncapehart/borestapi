@@ -31,7 +31,7 @@ Open a connection to a BO server. You can keep parameters in environment variabl
 }
 \examples{
 # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME".
- and password in the database
+# and password in the database
 open_bo_connection()
 # open a connection to a server using username and password
 open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
