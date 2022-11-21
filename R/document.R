@@ -9,7 +9,7 @@ testNumericArgument <- function(x) {
 }
 
 #' Get data directly from a document data provider
-#' See also get_bo_document_report
+#' See also get_bo_report_data
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
@@ -18,14 +18,15 @@ testNumericArgument <- function(x) {
 #'
 #' @return Tibble of data
 #' @export
-get_bo_document_data <- function(conn, document, provider_id, ...) {
+get_bo_data_provider_data <- function(conn, document, data_provider, ...) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
   request %<>% httr2::req_headers("Accept" = "text/plain")
-  request$url <- paste(request$url, provider_id, "flows/0", sep = "/")
+  request %<>% httr2::req_url_path_append("raylight/v1/documents", document_id)
+  request %<>% httr2::req_url_path_append("dataproviders", data_provider, 'flows', "0")
   response <- httr2::req_perform(request)
   df <- httr2::resp_body_string(response) %>% read_delim(delim = ";", show_col_types = FALSE, ...)
-  report_request_result(request, response, paste("Get document data rows", nrow(df), "columns", ncol(df)), "get_bo_document_data", 246)
+  report_request_result(request, response, paste("Get document data rows", nrow(df), "columns", ncol(df)), "get_bo_data_provider_data", 246)
   df
 }
 
@@ -43,7 +44,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
   request$url <- paste(request$url, "raylight/v1/documents", document_id, "occurrences", sep = "/")
   response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";GET occurances", document_id), "close_bo_document", 55)
-  occurrance <- httr2::resp_body_json()$occurrences$occurrence
+  occurrance <- httr2::resp_body_json(response)$occurrences$occurrence
   if (length(occurrance) == 0) {
     logger::log_info("No occurences to close for", document_id)
     return()
@@ -53,16 +54,15 @@ close_bo_document <- function(conn, document, save = FALSE) {
   occurrance %<>% keep(function(x)x$state!='Unused') %>% head(1)
   if (length(occurrance) == 1) {
     occurrance %<>% unlist()
-    url <- paste(url, occurrance[["id"]], sep = "/")
+    request$url <- paste(request$url, occurrance[["id"]], sep = "/")
     if (save) {
-      body <- NULL
     } else {
       body <- list("occurrence" = list(state = 'Unused')) %>% listToJSON()
+      request %<>% httr2::req_body_json(body)
     }
-    request %<>% httr2::req_body_json(body) %>% req_method('PUT')
-    request %<>% httr2::req_url(url)
+    request %<>% httr2::req_method('PUT')
     response <- httr2::req_perform(request)
-    report_request_result(request, response, paste("Closing document", document$SI_Name, ";PUT occurance", occurrance[['state']]), "close_bo_document", 71)
+    report_request_result(request, response, paste("Closing document", document$SI_NAME, ";PUT occurance", occurrance[['state']]), "close_bo_document", 71)
     httr2::resp_body_json(response)
   }
 }
@@ -100,11 +100,12 @@ post_bo_document <- function(conn, filename, parent_folder, filepath = filename)
 #' @noRd
 put_bo_document <- function(conn, filepath, filename, document_id) {
   request <- check_bo_connection(conn)
-  request %<>% httr2::req_body_file(path=filepath) %>%
+  request %<>% httr2::req_url_path_append("infostore/folder", parent_folder, "file") %>%
+    httr2::req_body_file(path=filepath) %>%
     httr2::req_headers("Accept" = "*/*",
       "Accept-Encoding" = "gzip, deflate",
       "Content-Type" = "multipart/form-data"
-    ) %>% httr2::req_url_path_append(paste("infostore/folder", parent_folder, "file")) %>%
+    ) %>%
     httr2::req_method('PUT')
   response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";PUT", filepath,filename,document_id), "put_bo_document", 94)
@@ -120,124 +121,59 @@ put_bo_document <- function(conn, filepath, filename, document_id) {
 #' @return Response content
 #' @export
 #' @noRd
-copyBODocument <- function(conn, document, parent_folder, destination_document_name) {
+copy_bo_document <- function(conn, document, parent_folder, destination_document_name) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
   body <- list("document" = list("name" = destination_document_name))
   request %<>% httr2::req_body_json(body)
-  request %<>% httr2::req_url_path_append('/raylight/v1/documents') %>%
-    httr2::req_url_query("sourceId=", document_id)
-  response <- httr2::req_perform()
+  request %<>% httr2::req_url_path_append('raylight/v1/documents') %>%
+    httr2::req_url_query("sourceId" = document_id)
+  response <- httr2::req_perform(request)
   report_request_result(
     request,
     response,
     paste("POST copy file", document_id, "copyBODocument line 139")
   )
-  logger::log_info("Copy", document_id, "to", destination_document_name, "complete", level = "message")
+  logger::log_info(paste("Copy", document_id, "to", destination_document_name, "complete"))
   httr2::resp_body_json(response)
 }
 
-delete_bo_document <- function(conn, document_id) {
+delete_bo_document <- function(conn, document) {
   request <- check_bo_connection(conn)
-  request %<>% httr2::req_url_path_append("/v1/document/", document_id) %>%
+  document_id <- get_bo_item_id(document)
+  request %<>% httr2::req_url_path_append("raylight/v1/documents", document_id) %>%
     httr2::req_method('DELETE')
   response <- httr2::req_perform(request)
-  report_request_result(request, response, paste(";DELETE",document_id), "delete_bo_document", 101)
+  report_request_result(request, response, paste(";DELETE",document_id, ";t delete_bo_document line 146"))
   httr2::resp_body_json(response)
 }
 
-get_bo_document_controls <- function(conn, document) {
-  document_id <- get_bo_item_id(document)
-  get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = "")
-}
-
-get_bo_document_control_selection <- function(conn, document, control_name) {
-  document_id <- get_bo_item_id(document)
-  inputcontrols <-get_bo_document_controls(conn, document)
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
-}
-
-#' Title
+#' Get the meta data for a Webi document
 #'
-#' @param conn Connection reference
+#' @param conn Connection Reference
 #' @param document Document as numeric id or tibble of properties
-#' @param control_name Name of the control
 #'
-#' @return Control selection set as tibble
+#' @return Document properties as tibble
 #' @export
-#' @noRd
-get_bo_document_control_selection_set <- function(conn, document, control_name = NULL) {
-  document_id <- get_bo_item_id(document)
-  inputcontrols <- get_bo_document_controls(conn, document)
-  if (!is_null_or_empty(control_name)) {
-      inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  }
-  inputcontrol <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id)
-  dataobjectId <- inputcontrol$assignedDataObject$`@refId`
-  result <- get_bo_raylight_endpoint(conn, documents = document_id, dataobjects = dataobjectId, lov = "")
-  result$values
-}
-
-#' Title
-#'
-#' @param conn Connection reference
-#' @param document Document as numeric id or tibble of properties
-#' @param control_name Name of the control
-#' @param selections Selected items
-#' @param all Select all items
-#'
-#' @return Response content
-#' @export
-#' @noRd
-set_bo_document_control_selection <- function(conn, document, control_name, selections, all) {
-  document_id <- get_bo_item_id(document)
-  inputcontrols <- get_bo_raylight_endpoint(conn,documents = document_id, inputcontrols = "")
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  v <- enframe(selections, name = NULL)
-  l <- list(selection = list(value = list(selections)))
-  b <- toJSON(l)
-  put_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "", body = l)
-}
-
-dateToBOQueryFilterDate <- function(d) {
-  paste0(as.numeric(as.Date(d),origin="1970-01-01")*864,'00000')
-}
-
-queryFilterDateToDate <- function(d) {
-  scaledDate = as.numeric(str_sub(d, end=-6))/864
-  as.Date(as.POSIXct(scaledDate, origin="1970-01-01"))
-}
-
-#' Title
-#'
-#' @param conn Connection reference
-#' @param document Document as numeric id or tibble of properties
-#' @param dataprovider Name of data provider from document
-#' @param startDate Start of date range
-#' @param endDate End of date range
-#'
-#' @return Response content
-#' @export
-#' @noRd
-set_bo_document_data_source_date_range <- function(conn, document, dataprovider, startDate, endDate) {
+get_bo_document_details <- function(conn, document) {
   request <- check_bo_connection(conn)
+  request %<>% httr2::req_headers("Accept-Encoding" = "gzip, deflate")
   document_id <- get_bo_item_id(document)
-  dp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders='')
-  dp %>% dplyr::filter(name == dataprovider)
-  sdp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id[1])
-  request %<>% httr2::req_headers('Accept' = 'text/xml')
-  spc <- get_bo_raylight_endpoint(request, documents=document_id, dataproviders=sdp$id, specification='')
-  dates <- str_extract_all(spc, 'value="[0-9]{13}" type="Date"') %>% map(~str_extract(., pattern='[0-9]{13}')) %>% unlist()
-  spc<-str_replace(spc, dates[1], dateToBOQueryFilterDate(startDate)) %>% str_replace(pattern = dates[2], replacement = dateToBOQueryFilterDate(endDate))
-  request %<>% httr2::req_headers('Content-Type'= 'text/xml',
-    'Accept' = 'application/json'
-  )
-  put_bo_raylight_endpoint(request, documents=document_id, dataproviders=dp$id[1], specification='', body = spc)
+  request %<>% httr2::req_url_path_append("/v1/documents", document_id)
+  response <- httr2::req_perform(request)
+  report_request_result(request, response, paste(";d GET", document_id, ";t get_bo_document_details line 163"))
+  httr2::resp_body_json(response) %>% as_tibble()
 }
 
-refreshBODataProvider <- function(conn, document_id, dataSourceId) {
-  put_bo_raylight_endpoint(conn, documents = document_id, dataproviders = dataSourceId, parameters = '')
+refresh_bo_data_provider <- function(conn, document_id, provider_id) {
+  put_bo_raylight_endpoint(conn, documents = document_id, dataproviders = provider_id, parameters = '')
+  logger::log_info(paste("Refreshed data for", document_id, provider_id, ";trefresh_bo_data_provider line 170"))
+}
+
+get_bo_data_provider_details <- function(conn, document, data_provider = '') {
+  document_id <- get_bo_item_id(document)
+  dp <- get_bo_raylight_endpoint(conn, documents = document_id, dataproviders = data_provider) %>% bind_list()
+  return(dp)
 }
 
 #' Title
@@ -248,28 +184,12 @@ refreshBODataProvider <- function(conn, document_id, dataSourceId) {
 #'
 #' @return Response content
 #' @export
-refresh_bo_document <- function(conn, document, dataSourceType = NULL) {
+refresh_bo_document_data_provider <- function(conn, document, data_provider = NULL) {
   document_id <- get_bo_item_id(document)
-  dp <- get_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '')
-  if (!is_null_or_empty(dataSourceType)) dp %<>% dplyr::filter(dataSourceType == dataSourceType)
-  dp$id %>% sapply(function(x) refreshBODataProvider(conn, document_id, x))
-}
-
-#' Title
-#'
-#' @param conn Connection Reference
-#' @param document Document as numeric id or tibble of properties
-#'
-#' @return Document properties as tibble
-#' @export
-get_bo_document <- function(conn, document) {
-  request <- check_bo_connection(conn)
-  request %<>% httr2::req_headers("Accept-Encoding" = "gzip, deflate")
-  document_id <- get_bo_item_id(document)
-  request %<>% httr2::req_url_path_append("/v1/documents", document_id)
-  response <- httr2::req_perform()
-  logger::log_info("get_bo_document 249", ifelse(response$status_code == 200, paste("Get succeeded to", url), paste("Get failed", response$status_code, content(response))))
-  document <- content(response)
-  httr2::req_body_json(request)
+  dp <- get_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '') %>% bind_list()
+  if (!is_null_or_empty(data_provider)) {
+    dp %<>% dplyr::filter(id == data_provider)
+  }
+  dp$id %>% sapply(function(x) refresh_bo_data_provider(conn, document_id, x))
 }
 

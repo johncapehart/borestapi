@@ -47,16 +47,16 @@ put_bo_spreadsheet <- function(conn, filename, sheet_id, filepath = filename) {
 #'
 #' @return List of properties
 #' @export
-get_bo_spreadsheet <- function(conn, filename, parent_folder) {
+get_bo_spreadsheet_details <- function(conn, filename, parent_folder) {
   request <- check_bo_connection(conn)
   sheet <- get_bo_item(conn, filename, parent_folder = parent_folder, kind = "Excel")
 
   if (nrow(sheet)) {
-    url <- paste0(request$url, "/raylight/v1/spreadsheets/", sheet$SI_ID)
-    request$url <- url
+    request %<>% httr2::req_url_path_append("raylight/v1/spreadsheets", sheet$SI_ID)
     response <- httr2::req_perform(request)
-    report_request_result( request, response, paste("GET file", filename, sheet$SI_ID), "get_bo_spreadsheet", 100)
-    return(httr2::resp_body_json(response))
+    report_request_result( request, response, paste("GET file", filename, sheet$SI_ID), "get_bo_spreadsheet_details", 100)
+    result <- httr2::resp_body_json(response) %>% flatten_scalars() %>% bind_rows()
+    return(result)
   }
 }
 
@@ -69,13 +69,15 @@ get_bo_spreadsheet <- function(conn, filename, parent_folder) {
 #' @return Response content
 #' @export
 delete_bo_spreadsheet <- function(conn, filename, parent_folder) {
-  request <- check_bo_connection(conn)
-  sheet <- get_bo_item(conn, filename, parent_folder = parent_folder, kind = "Excel")
-  request %<>% httr2::req_url_path_append('raylight/v1/spreadsheets', sheet$SI_ID)
-  request %<>% httr2::req_method('DELETE')
-  response <- httr2::req_perform(request)
-  report_request_result( request, response, paste("DELETE file", filename, sheet$SI_ID), "delete_bo_spreadsheet", 138)
-  return(httr2::resp_body_json(response))
+  sheet <- get_bo_spreadsheet_details(conn, filename, parent_folder)
+  if (nrow(sheet)) {
+    request <- check_bo_connection(conn)
+    request %<>% httr2::req_url_path_append("raylight/v1/spreadsheets", sheet$id)
+    request %<>% httr2::req_method('DELETE')
+    response <- httr2::req_perform(request)
+    report_request_result( request, response, paste("GET file", filename, sheet$SI_ID), "get_bo_spreadsheet_details", 100)
+    return(httr2::resp_body_json(response))
+  }
 }
 
 #' Title

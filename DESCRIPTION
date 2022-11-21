@@ -41,6 +41,7 @@ Collate:
     'borestapi-package.R'
     'compat-purrr.R'
     'connect.R'
+    'controls.R'
     'document.R'
     'globals.R'
     'report.R'
@@ -52,6 +53,7 @@ Suggests:
     getPass,
     knitr,
     openxlsx,
+    parsedate,
     qpdf,
     rmarkdown,
     testthat (>= 3.0.0),

@@ -13,7 +13,7 @@ get_bo_report_name <- function(report) {
 }
 
 #' Get data from a BO document report tab
-#' @description Use get_bo_document_report to get data from a tab in a BO document. Be sure to save the report
+#' @description Use get_bo_report_data to get data from a tab in a BO document. Be sure to save the report
 #' after refreshing data in BO
 #' @details
 #' Depending on the layout of the report tab you may need to skip rows in the output to get to the data
@@ -26,8 +26,8 @@ get_bo_report_name <- function(report) {
 #' @return Tibble of report data
 #' @export
 
-get_bo_document_report <- function(conn, document, report, skip=0) {
-  logger::log_info("Getting report data", "{report}", "for document", "{document}", ";get_bo_document_report 220")
+get_bo_report_data <- function(conn, document, report, skip=0) {
+  logger::log_info("Getting report data", "{report}", "for document", "{document}", ";get_bo_report_data 220")
   document_id = get_bo_item_id(document)
   report_name <- get_bo_report_name(report)
   reports <- get_bo_raylight_endpoint(conn, documents = document_id, reports = '') %>% bind_list()
@@ -37,7 +37,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
   reportId <- report$id
   result <- get_bo_raylight_endpoint(conn, documents = document_id, reports = reportId, accept='text/csv')
   dataset <- result %>% read_delim(delim = ";",show_col_types = FALSE, skip = skip)
-  logger::log_info(paste(nrow(dataset), "rows retrieved from report", report_name, "in document", "{document}", ";get_bo_document_report 220"))
+  logger::log_info(paste(nrow(dataset), "rows retrieved from report", report_name, "in document", "{document}", ";get_bo_report_data 220"))
   return(dataset)
 }
 
@@ -52,7 +52,7 @@ get_bo_document_report <- function(conn, document, report, skip=0) {
 #' @export
 #' @noRd
 get_bo_report_element_data <- function(conn, document, report, element) {
-  logger::log_info("Getting report","{report}", "for document", "{document}", ";tget_bo_document_report 33")
+  logger::log_info("Getting report","{report}", "for document", "{document}", ";tget_bo_report_data 33")
   document_id = get_bo_item_id(document)
   reports <- get_bo_raylight_endpoint(conn, documents = document_id, reports = '')
   reports <- bind_list(reports)
