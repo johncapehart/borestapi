@@ -12,8 +12,8 @@ init_rsa_keys <- function() {
     if (!dir.exists('~/.ssh')) {
       dir.create('~/.ssh')
     }
-    write_pem(key, "~/.ssh/id_rsa")
-    write_ssh(key$pubkey, "~/.ssh/id_rsa.pub")
+    openssl::write_pem(key, "~/.ssh/id_rsa")
+    openssl::write_ssh(key$pubkey, "~/.ssh/id_rsa.pub")
   }
 }
 
