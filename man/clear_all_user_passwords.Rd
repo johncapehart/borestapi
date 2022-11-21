@@ -2,10 +2,10 @@
 % Please edit documentation in R/token-cache.R
 \name{clear_all_user_passwords}
 \alias{clear_all_user_passwords}
-\title{Title}
+\title{Clear all user passwords}
 \usage{
 clear_all_user_passwords()
 }
 \description{
-Title
+Clear all user passwords
 }
