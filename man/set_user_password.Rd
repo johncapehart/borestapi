@@ -2,7 +2,7 @@
 % Please edit documentation in R/token-cache.R
 \name{set_user_password}
 \alias{set_user_password}
-\title{Title}
+\title{Set the password for a user in the connections database}
 \usage{
 set_user_password(
   username = Sys.getenv("BO_USERNAME"),
@@ -11,8 +11,12 @@ set_user_password(
 )
 }
 \arguments{
-\item{password}{}
+\item{username}{Name of the user}
+
+\item{server}{Name of the server (host) with port}
+
+\item{password}{Value for password}
 }
 \description{
-Title
+Set the password for a user in the connections database
 }

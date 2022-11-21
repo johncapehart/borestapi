@@ -10,7 +10,12 @@ get_user_password(
 )
 }
 \arguments{
-\item{server}{}
+\item{username}{Name of the user}
+
+\item{server}{Name of the server (host) with port}
+}
+\value{
+Password
 }
 \description{
 Title

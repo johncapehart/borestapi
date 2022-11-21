@@ -2,7 +2,7 @@
 % Please edit documentation in R/token-cache.R
 \name{clear_user_password}
 \alias{clear_user_password}
-\title{Title}
+\title{Clear the password for a user in the connections database}
 \usage{
 clear_user_password(
   username = Sys.getenv("BO_USERNAME"),
@@ -10,8 +10,10 @@ clear_user_password(
 )
 }
 \arguments{
-\item{server}{}
+\item{username}{Name of the user}
+
+\item{server}{Name of the server (host) with port}
 }
 \description{
-Title
+Clear the password for a user in the connections database
 }

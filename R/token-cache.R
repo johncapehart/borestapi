@@ -70,6 +70,12 @@ clear_table <- function(table_name= get_token_table_name()) {
   close_database(db_conn)
 }
 
+#' Get the number of rows in a table
+#'
+#' @param table_name
+#'
+#' @export
+#' @noRd
 get_table_row_count <- function(table_name= get_token_table_name()) {
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
@@ -85,7 +91,13 @@ get_table_row_count <- function(table_name= get_token_table_name()) {
 
 # Item operations ----------------------------------------------------------------
 
-get_saved_items <- function(username, server, table_name = get_token_table_name()) {
+#' Get items from table
+#'
+#' @param table_name
+#'
+#' @export
+#' @noRd
+get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), table_name = get_token_table_name()) {
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
   items <- NULL
@@ -105,7 +117,15 @@ get_saved_items <- function(username, server, table_name = get_token_table_name(
   return(items)
 }
 
-remove_item <- function(username, server, table_name = get_token_table_name()) {
+#' Remove an item from table
+#'
+#' @param table_name Name of the table c('tokens','credentials')
+#' @param username  Name of the user
+#' @param server Name of the server
+#'
+#' @export
+#' @noRd
+remove_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), table_name = get_token_table_name()) {
   log_debug("removing item", username, server, table_name, ";remove_item line 316")
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
@@ -117,7 +137,17 @@ remove_item <- function(username, server, table_name = get_token_table_name()) {
   close_database(db_conn)
 }
 
-save_item <- function(username, server, value, table_name = get_token_table_name()) {
+#' Save an item from table
+#'
+#' @param table_name Name of the table c('tokens','credentials')
+#' @param username  Name of the user
+#' @param server Name of the server
+#' @param value Value for item
+#'
+#'
+#' @export
+#' @noRd
+save_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), value, table_name = get_token_table_name()) {
   db_conn <- open_database()
   value <- base64enc::base64encode(encrypt_object(value))
   new_values <- tibble(timestamp = now(), usernamekey = username, serverkey = server, value)
@@ -140,42 +170,40 @@ get_password_table_name <- function() {
 
 #' Title
 #'
-#' @param username
-#' @param server
+#' @param username Name of the user
+#' @param server Name of the server (host) with port
 #'
-#' @return
+#' @return Password
 #' @export
 get_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER')) {
   get_saved_items(username, server, table_name = get_password_table_name())$value
 }
 
-#' Title
+#' Set the password for a user in the connections database
+#' @param username Name of the user
+#' @param server Name of the server (host) with port
+#' @param password Value for password
 #'
-#' @param username
-#' @param server
-#' @param password
-#'
-#' @return
+#' @return NULL
 #' @export
 set_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), password) {
   clear_user_password(username, server)
   save_item(username, server, table_name = get_password_table_name(), value = password)
 }
 
-#' Title
+#' Clear the password for a user in the connections database
+#' @param username Name of the user
+#' @param server Name of the server (host) with port
 #'
-#' @param username
-#' @param server
-#'
-#' @return
+#' @return NULL
 #' @export
 clear_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER')) {
   remove_item(username, server, table_name = get_password_table_name())
 }
 
-#' Title
+#' Clear all user passwords
 #'
-#' @return
+#' @return NULL
 #' @export
 clear_all_user_passwords <- function() {
   clear_table(table_name = get_password_table_name())
