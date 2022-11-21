@@ -5,6 +5,10 @@
 #
 # encryption ----------------------------------------------------------------
 
+get_salt <- function(x) {
+  serialize(openssl::sha256(serialize(x, NULL)), NULL)
+}
+
 init_rsa_keys <- function() {
   if (!file.exists("~/.ssh/id_rsa")) {
     logger::log_debug("Initializing RSA keys at '~/.ssh'", ';t init_rsa_keys line 11')
@@ -19,7 +23,7 @@ init_rsa_keys <- function() {
 
 encrypt_object <- function(plain) {
   init_rsa_keys()
-  plain <- serialize(plain, NULL)
+  plain <- c(serialize(plain, NULL), get_salt(plain))
   out <- openssl::encrypt_envelope(plain)
   return(serialize(out, NULL))
 }
@@ -27,6 +31,7 @@ encrypt_object <- function(plain) {
 decrypt_object <- function(cipher) {
   cipher <- unserialize(cipher)
   out <- openssl::decrypt_envelope(cipher$data, cipher$iv, cipher$session, key = openssl::my_key(), password = NULL)
+  out <- head(out, -122)
   return(unserialize(out))
 }
 
