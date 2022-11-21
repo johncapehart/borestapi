@@ -138,19 +138,45 @@ get_password_table_name <- function() {
   'credentials'
 }
 
+#' Title
+#'
+#' @param username
+#' @param server
+#'
+#' @return
+#' @export
 get_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER')) {
   get_saved_items(username, server, table_name = get_password_table_name())$value
 }
 
+#' Title
+#'
+#' @param username
+#' @param server
+#' @param password
+#'
+#' @return
+#' @export
 set_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), password) {
   clear_user_password(username, server)
   save_item(username, server, table_name = get_password_table_name(), value = password)
 }
 
+#' Title
+#'
+#' @param username
+#' @param server
+#'
+#' @return
+#' @export
 clear_user_password <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER')) {
   remove_item(username, server, table_name = get_password_table_name())
 }
 
+#' Title
+#'
+#' @return
+#' @export
 clear_all_user_passwords <- function() {
   clear_table(table_name = get_password_table_name())
 }
