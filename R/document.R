@@ -13,7 +13,7 @@ testNumericArgument <- function(x) {
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param provider_id Numeric id of the provider
+#' @param provider_id Id of the provider
 #' @param ... Parameters for read_delim
 #'
 #' @return Tibble of data

@@ -7,14 +7,35 @@
 
 get_bo_control_details <- function(conn, document, control_name = '') {
   document_id <- get_bo_item_id(document)
-  get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = control_name)
+  result <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = control_name)
+  result %>% bind_list()
 }
 
-set_bo_control_selection <- function(conn, document, control_name) {
+#' Get the selection state of a document control
+#'
+#' @param conn Connection reference
+#' @param document Document as numeric id or tibble of properties
+#' @param control_name Name of control
+#'
+#' @return '@all' or tibble of selected levels
+#' @export
+get_bo_control_selection <- function(conn, document, control_name) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <-get_bo_control_details(conn, document)(conn, document)
+  inputcontrols <-get_bo_control_details(conn, document)
   inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
+  result <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
+  if (result[['@all']]) {
+    return('@all')
+  } else {
+    return(result$value %>% bind_list())
+  }
+}
+
+set_bo_control_selection <- function(conn, document, control_name, selection) {
+  document_id <- get_bo_item_id(document)
+  inputcontrols <-get_bo_control_details(conn, document)
+  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
+  put_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
 }
 
 #' Title
@@ -28,14 +49,13 @@ set_bo_control_selection <- function(conn, document, control_name) {
 #' @noRd
 get_bo_control_selection_set <- function(conn, document, control_name = NULL) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <- get_bo_control_details(conn, document)(conn, document)
-  if (!is_null_or_empty(control_name)) {
-      inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  }
-  inputcontrol <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrol = inputcontrols$id)
+  inputcontrols <- get_bo_control_details(conn, document)
+  inputcontrols <- inputcontrols %>% dplyr::filter(name == control_name)
+  inputcontrol <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrols$id)
   dataobjectId <- inputcontrol$assignedDataObject$`@refId`
   result <- get_bo_raylight_endpoint(conn, documents = document_id, dataobjects = dataobjectId, lov = "")
-  result$values
+  values <- result$values %>% flatten_scalars()
+  values
 }
 
 #' Title

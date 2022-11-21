@@ -80,7 +80,7 @@ check_bo_connection <- function(conn) {
     if (check_bo_connection_state(conn$request)) {
       return(conn$request)
     } else {
-      open_bo_connection(conn=conn)
+      reconnect_bo_connection(conn)
       return(conn$request)
     }
   }
@@ -141,10 +141,8 @@ get_new_token <- function(conn, server, username, password = NULL) {
 
 # connection management ----------------------------------------------------------------
 
-get_new_request <- function(conn, server, username) {
-  if (!hasArg("conn") || is.null(conn)) {
-    conn <- new_bo_request_reference() # make a new empty request reference
-  }
+get_new_request <- function(server, username) {
+  conn <- new_bo_request_reference() # make a new empty request reference
   base_url <- paste0("https://", server, "/biprws")
   # set request headers
   conn$request <- httr2::request(base_url) %>%
@@ -159,10 +157,12 @@ get_new_request <- function(conn, server, username) {
 
 #' Open a connection to a BO server. You can keep parameters in environment variables
 #'
-#' @param server Server to connect to "server:port" (optional). Defaults BO_SERVER environment variable
-#' @param username (optional). Defaults to "BO_USERNAME environment variable
-#' @param password (optional). Use getPass() to enter value
-#' @param save_password Save the password encrypted in the database
+#' @param server Server to connect to "server:port" (optional)
+#' Defaults BO_SERVER environment variable
+#' @param username (optional) Defaults to "BO_USERNAME environment variable
+#' @param password (optional)
+#' @param save_password Save the password encrypted in the database.
+#' Saving password is required for automatic reconnection on token expiration
 #' @param conn Connection reference to reuse (optional)
 #'
 #' @return Connection reference
@@ -175,38 +175,41 @@ get_new_request <- function(conn, server, username) {
 #' @export
 open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
                                username = Sys.getenv("BO_USERNAME"),
-                               password = NULL,
-                               conn = NULL,
+                               password = get_user_password(username, server),
                                save_password = TRUE) {
-  if (!is_empty(conn)) {
-    if (check_bo_connection_state(conn)) {
-      return(conn)
-    } else {
-      username = conn$request$headers
-    }
-  } else {
-    conn <- get_new_request(conn, server, username)
-  }
+  conn <- get_new_request(server, username)
   # search for valid token matching server and username
   if (get_cached_token(conn, server, username)) {
      return(conn)
   }
-  if (is_empty(password)) {
-    password2 <- get_user_password(username, server)
-  } else {
-    password2 <- password
-  }
-  if (!is_empty(password2) && get_new_token(conn, server, username, password2)) {
+  if (get_new_token(conn, server, username, password)) {
     if (save_password) {
-      if (is_empty(password) || password2 != password) {
-        set_user_password(username, server, password2)
-      }
-    } else {
-      clear_user_password(username, server)
+      set_user_password(username, server, password)
     }
     return(conn)
   }
   stop("open_bo_connection failed")
+}
+
+#' Title
+#'
+#' @param conn Connection reference to reconnect
+#'
+#' @return Connection reference
+#' @noRd
+
+reconnect_bo_connection <- function(conn) {
+  username = conn$request$headers[['User']]
+  server <- conn$request$headers[['Host']]
+  password = get_user_password(username, server)
+  logger::log_info(paste("Reconnecting to", server, "as", username, ";d have password", !is_null_or_empty(password), ";t reconnect_bo_connection line 208"))
+  if (get_cached_token(conn, server, username)) {
+    return(conn)
+  }
+  if (get_new_token(conn, server, username, password)) {
+    return(conn)
+  }
+  stop("reconnect_bo_connection failed")
 }
 
 #' Close connection to the BO server

@@ -14,7 +14,7 @@ get_bo_data_provider_data(conn, document, data_provider, ...)
 
 \item{...}{Parameters for read_delim}
 
-\item{provider_id}{Numeric id of the provider}
+\item{provider_id}{Id of the provider}
 }
 \value{
 Tibble of data

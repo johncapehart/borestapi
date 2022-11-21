@@ -7,21 +7,22 @@
 open_bo_connection(
   server = Sys.getenv("BO_SERVER"),
   username = Sys.getenv("BO_USERNAME"),
-  password = NULL,
-  conn = NULL,
+  password = get_user_password(username, server),
   save_password = TRUE
 )
 }
 \arguments{
-\item{server}{Server to connect to "server:port" (optional). Defaults BO_SERVER environment variable}
+\item{server}{Server to connect to "server:port" (optional)
+Defaults BO_SERVER environment variable}
 
-\item{username}{(optional). Defaults to "BO_USERNAME environment variable}
+\item{username}{(optional) Defaults to "BO_USERNAME environment variable}
 
-\item{password}{(optional). Use getPass() to enter value}
+\item{password}{(optional)}
+
+\item{save_password}{Save the password encrypted in the database.
+Saving password is required for automatic reconnection on token expiration}
 
 \item{conn}{Connection reference to reuse (optional)}
-
-\item{save_password}{Save the password encrypted in the database}
 }
 \value{
 Connection reference
