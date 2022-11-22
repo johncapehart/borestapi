@@ -46,11 +46,18 @@ report_request_result2 <- function(request, response, ...) {
 #' @return Numeric id of item
 
 get_bo_item_id <- function(item) {
-  if (is_list(item) || is_tibble(item) || is.environment(item)) {
-    return(item$SI_ID)
-  }
-  if (testNumericArgument(item)) {
+  if (quiet_is_numeric(item)) {
     return(item)
+  }
+  if (is_list(item) || is_tibble(item) || is.environment(item)) {
+    if ('SI_ID' %in% names(item)) {
+      # for tibble returned by querys
+      return(item$SI_ID)
+    }
+    if ('id' %in% names(item)) {
+      # for tibble returned by raylight
+      return(item$id)
+    }
   }
   return(NULL)
 }
@@ -151,22 +158,37 @@ paste_url <- function(...) {
     paste(..., sep = "/")))
 }
 
-flatten_scalars <- function(list) {
+quiet_is_numeric <- function(x) {
+  if (is_atomic(x)) {
+    result <- purrr::quietly(function(x)!is.na(as.numeric(x)))(x)$result
+    return (result)
+  }
+  return(FALSE)
+}
+
+flatten_scalars <- function(list, stop_name = NULL) {
   # recursiviely unwrap lists with one named item
-  while (length(names(list)) == 1)
+  while (length(names(list)) == 1 && (is_null(stop_name) || !stop_name %in% names(list)))
     list %<>% purrr::pluck(names(list))
   list
 }
 
 bind_list <- function(list) {
-  list %>% purrr::map(purrr::flatten_dfr) %>% bind_rows()
+  if (length(names(list)) > 1) {
+    list %>% bind_rows()
+  } else {
+    list %>% purrr::map(purrr::flatten_dfr) %>% bind_rows()
+  }
+}
+
+bind_result <- function(result, stop_name = NULL) {
+  result %<>% flatten_scalars(stop_name) %>%
+    bind_list()
 }
 
 return_bo_response_content <- function(response) {
   if (response$headers[['content-type']] %>% str_detect('json')) {
-    result <- httr2::resp_body_json(response)
-    result2 <- flatten_scalars(result)
-    return(result2)
+    httr2::resp_body_json(response, simplifyVector = TRUE) %>% bind_rows()
   } else if (response$headers[['content-type']] %>% str_detect('text')) {
     httr2::resp_body_string(response)
   } else {
