@@ -4,7 +4,7 @@
 \alias{get_bo_report_data}
 \title{Get data from a BO document report tab}
 \usage{
-get_bo_report_data(conn, document, report, skip = 0)
+get_bo_report_data(conn, document, report = "", skip = 0)
 }
 \arguments{
 \item{conn}{Connection reference obtained from open_bo_connection}

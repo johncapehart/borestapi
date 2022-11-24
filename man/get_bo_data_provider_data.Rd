@@ -2,8 +2,7 @@
 % Please edit documentation in R/document.R
 \name{get_bo_data_provider_data}
 \alias{get_bo_data_provider_data}
-\title{Get data directly from a document data provider
-See also get_bo_report_data}
+\title{Get data directly from a document data provider}
 \usage{
 get_bo_data_provider_data(conn, document, data_provider, ...)
 }
@@ -20,6 +19,5 @@ get_bo_data_provider_data(conn, document, data_provider, ...)
 Tibble of data
 }
 \description{
-Get data directly from a document data provider
 See also get_bo_report_data
 }

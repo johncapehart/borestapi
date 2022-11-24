@@ -2,14 +2,11 @@
 #' @importFrom tibble tibble enframe as_tibble is_tibble
 #' @importFrom tidyr pivot_wider
 #' @include api-utils.R
-#'
 
-testNumericArgument <- function(x) {
-  quietly(function(x)!is.na(as.numeric(x)))(x)$result
-}
+# Data ----------------------------------------------------------------
 
-#' Get data directly from a document data provider
-#' See also get_bo_report_data
+#' @title Get data directly from a document data provider
+#' @description See also get_bo_report_data
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
@@ -57,7 +54,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
     request$url <- paste(request$url, occurrance[["id"]], sep = "/")
     if (save) {
     } else {
-      body <- list("occurrence" = list(state = 'Unused')) %>% listToJSON()
+      body <- list("occurrence" = list(state = 'Unused'))
       request %<>% httr2::req_body_json(body)
     }
     request %<>% httr2::req_method('PUT')
@@ -162,17 +159,25 @@ get_bo_document_details <- function(conn, document) {
   request %<>% httr2::req_url_path_append("/v1/documents", document_id)
   response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";d GET", document_id, ";t get_bo_document_details line 163"))
-  httr2::resp_body_json(response) %>% as_tibble()
+  httr2::resp_body_json(response, simplifyVector = TRUE) %>% bind_rows()
 }
 
 refresh_bo_data_provider <- function(conn, document_id, provider_id) {
-  put_bo_raylight_endpoint(conn, documents = document_id, dataproviders = provider_id, parameters = '')
+  request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = provider_id, parameters = '', method = 'PUT')
   logger::log_info(paste("Refreshed data for", document_id, provider_id, ";trefresh_bo_data_provider line 170"))
 }
 
+#' Title
+#'
+#' @param conn Connection Reference
+#' @param document Document as numeric id or tibble of properties
+#' @param data_provider Name of the data provider (optional)
+#'
+#' @return Provider detals as tibble
+#' @export
 get_bo_data_provider_details <- function(conn, document, data_provider = '') {
   document_id <- get_bo_item_id(document)
-  dp <- get_bo_raylight_endpoint(conn, documents = document_id, dataproviders = data_provider) %>% bind_list()
+  dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = data_provider) %>% bind_list()
   return(dp)
 }
 
@@ -186,7 +191,7 @@ get_bo_data_provider_details <- function(conn, document, data_provider = '') {
 #' @export
 refresh_bo_document_data_provider <- function(conn, document, data_provider = NULL) {
   document_id <- get_bo_item_id(document)
-  dp <- get_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '') %>% bind_list()
+  dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '') %>% bind_list()
   if (!is_null_or_empty(data_provider)) {
     dp %<>% dplyr::filter(id == data_provider)
   }

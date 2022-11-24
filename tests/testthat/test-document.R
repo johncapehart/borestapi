@@ -5,12 +5,26 @@ test_that(paste("get_bo_document_details returns document details for ", Sys.get
   expect_equal(document2$name, Sys.getenv('BO_TEST_DOCUMENT_NAME'))
 })
 
-test_that(paste("Document", Sys.getenv('BO_TEST_DOCUMENT_NAME'), "refreshes"), {
+test_that(paste("get_bo_data_provider_details returns document details for ", Sys.getenv('BO_TEST_DOCUMENT_NAME')), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  providers <- get_bo_data_provider_details(conn, document)
+  expect_gt(nrow(providers), 0)
+})
+
+test_that(paste("Document", Sys.getenv('BO_TEST_DOCUMENT_NAME'), "refreshes"), {
+  conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
+  document_name <- Sys.getenv('BO_TEST_DOCUMENT_NAME')
+  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  provider = get_bo_data_provider_details(conn, document)
   d1 <- get_bo_document_details(conn, document)
+  df <- get_bo_data_provider_data(conn, document, data_provider = Sys.getenv('BO_TEST_DATA_SOURCE'))
   refresh_bo_document_data_provider(conn, document=document, data_provider = Sys.getenv('BO_TEST_DATA_SOURCE'))
+  Sys.sleep(5)
   close_bo_document(conn, document, save= TRUE)
+  Sys.sleep(15)
+  df <- get_bo_data_provider_data(conn, document, data_provider = Sys.getenv('BO_TEST_DATA_SOURCE'))
   d2 <- get_bo_document_details(conn, document)
   u1 <- lubridate::parse_date_time(d1$updated, '%m, %d %Y %I:%M %p')
   u2 <- lubridate::parse_date_time(d2$updated, '%m, %d %Y %I:%M %p')

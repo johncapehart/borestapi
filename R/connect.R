@@ -1,7 +1,6 @@
 #' @importFrom methods hasArg new
 #' @importFrom httr2 request
 #' @importFrom utils head tail timestamp
-#' @importFrom stats filter
 #' @importFrom magrittr %<>% %>%
 #' @importFrom jsonlite toJSON fromJSON
 #' @include api-utils.R
@@ -20,12 +19,6 @@ get_home_path <- function() {
 }
 
 # connection validation ----------------------------------------------------------------
-
-listToJSON <- function(list) {
-  list %>%
-    toJSON() %>%
-    gsub("(\\[|])", "", .) # remove array brackets
-}
 
 #' Get user rights on the BO server
 #'

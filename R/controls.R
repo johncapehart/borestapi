@@ -1,14 +1,33 @@
-#' @importFrom magrittr %<>% %>%
-#' @include api-utils.R
+# Controls break ----------------------------------------------------------------
+
+#' Get input controls for document or report
 #'
-
-#----------------------------------------------------------------
-# document controls
-
-get_bo_control_details <- function(conn, document, control_name = '') {
+#' @param conn Connection reference
+#' @param document Document as numeric id or tibble of properties
+#' @param report Report name (omit for document level controls)
+#' @param control Control name (omit to return all controls)
+#' @param all_info Return all control details
+#'
+#' @return Controls as tibble
+#' @export
+get_bo_control_details <- function(conn, document, report = NULL, control = '', all_info = FALSE) {
   document_id <- get_bo_item_id(document)
-  result <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = control_name)
-  result %>% bind_list()
+  if (all_info) {
+    query = list('allInfo'='true')
+  } else {
+    query = NULL
+  }
+  if (is_null_or_empty(report)) {
+    path = list(documents = document_id, inputcontrols = '')
+    result <- request_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = '', query = query)
+  } else {
+    report0 <- get_bo_report_details(conn, document, report)
+    result <- request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = '', query = query)
+  }
+  if (!is_null_or_empty(control)) {
+    result <- result %>% dplyr::filter(name == control | id == control)
+  }
+  result
 }
 
 #' Get the selection state of a document control
@@ -19,23 +38,16 @@ get_bo_control_details <- function(conn, document, control_name = '') {
 #'
 #' @return '@all' or tibble of selected levels
 #' @export
-get_bo_control_selection <- function(conn, document, control_name) {
+get_bo_control_selection <- function(conn, document, report = '', control) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <-get_bo_control_details(conn, document)
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  result <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
-  if (result[['@all']]) {
-    return('@all')
+  inputcontrols <- get_bo_control_details(conn, document, report, control)
+  if (is_null_or_empty(report)) {
+    selection <- request_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrols$id, selection = "")
   } else {
-    return(result$value %>% bind_list())
+    report0 <- get_bo_report_details(conn, document, report)
+    selection <- request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = inputcontrols$id, selection = "")
   }
-}
-
-set_bo_control_selection <- function(conn, document, control_name, selection) {
-  document_id <- get_bo_item_id(document)
-  inputcontrols <-get_bo_control_details(conn, document)
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  put_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "")
+  selection
 }
 
 #' Title
@@ -47,18 +59,22 @@ set_bo_control_selection <- function(conn, document, control_name, selection) {
 #' @return Control selection set as tibble
 #' @export
 #' @noRd
-get_bo_control_selection_set <- function(conn, document, control_name = NULL) {
+get_bo_control_selection_set <- function(conn, document, report = '', control = '') {
   document_id <- get_bo_item_id(document)
-  inputcontrols <- get_bo_control_details(conn, document)
-  inputcontrols <- inputcontrols %>% dplyr::filter(name == control_name)
-  inputcontrol <- get_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrols$id)
-  dataobjectId <- inputcontrol$assignedDataObject$`@refId`
-  result <- get_bo_raylight_endpoint(conn, documents = document_id, dataobjects = dataobjectId, lov = "")
-  values <- result$values %>% flatten_scalars()
-  values
+  inputcontrols <- get_bo_control_details(conn, document, report, control)
+  if (is_null_or_empty(report)) {
+    inputcontrol <- request_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrols$id)
+    dataobjectId <- inputcontrol$assignedDataObject$`@refId`
+  } else {
+    report0 <- get_bo_report_details(conn, document, report)
+    inputcontrol <- request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = inputcontrols$id)
+    dataobjectId <- inputcontrol$assignedDataObject$`@refId`
+  }
+  result <- request_bo_raylight_endpoint(conn, documents = document_id, dataobjects = dataobjectId, lov = "")
+  result$values$value
 }
 
-#' Title
+#' Set the selected items for a control
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
@@ -69,14 +85,20 @@ get_bo_control_selection_set <- function(conn, document, control_name = NULL) {
 #' @return Response content
 #' @export
 #' @noRd
-set_bo_control_selection <- function(conn, document, control_name, selections, all) {
+set_bo_control_selection <- function(conn, document, report = NULL, control, selections = NULL, all = FALSE) {
   document_id <- get_bo_item_id(document)
-  inputcontrols <- get_bo_raylight_endpoint(conn,documents = document_id, inputcontrols = "")
-  inputcontrol <- inputcontrols %>% dplyr::filter(name == control_name)
-  v <- enframe(selections, name = NULL)
-  l <- list(selection = list(value = list(selections)))
-  b <- toJSON(l)
-  put_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection = "", body = l)
+  inputcontrol <-get_bo_control_details(conn, document, report, control)
+  if (all) {
+    body = list('selection'=list('@all'=TRUE))
+  } else {
+    body <- list('selection'=list(value=selections))
+  }
+  if (is_null_or_empty(report)) {
+    request_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection='', body = body)
+  } else {
+    report0 <- get_bo_report_details(conn, document, report)
+    request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = inputcontrol$id, selection='', body = body)
+  }
 }
 
 dateToBOQueryFilterDate <- function(d) {
@@ -88,8 +110,8 @@ queryFilterDateToDate <- function(d) {
   as.Date(as.POSIXct(scaledDate, origin="1970-01-01"))
 }
 
-#' Title
-#'
+#' @title Set the date range for a control
+#' @details Not tested
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
 #' @param dataprovider Name of data provider from document
@@ -102,15 +124,15 @@ queryFilterDateToDate <- function(d) {
 set_bo_data_source_date_range <- function(conn, document, dataprovider, startDate, endDate) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
-  dp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders='')
+  dp <- request_bo_raylight_endpoint(conn, documents=document_id, dataproviders='')
   dp %>% dplyr::filter(name == dataprovider)
-  sdp <- get_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id[1])
+  sdp <- request_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id[1])
   request %<>% httr2::req_headers('Accept' = 'text/xml')
-  spc <- get_bo_raylight_endpoint(request, documents=document_id, dataproviders=sdp$id, specification='')
+  spc <- request_bo_raylight_endpoint(request, documents=document_id, dataproviders=sdp$id, specification='')
   dates <- str_extract_all(spc, 'value="[0-9]{13}" type="Date"') %>% map(~str_extract(., pattern='[0-9]{13}')) %>% unlist()
   spc<-str_replace(spc, dates[1], dateToBOQueryFilterDate(startDate)) %>% str_replace(pattern = dates[2], replacement = dateToBOQueryFilterDate(endDate))
   request %<>% httr2::req_headers('Content-Type'= 'text/xml',
     'Accept' = 'application/json'
   )
-  put_bo_raylight_endpoint(request, documents=document_id, dataproviders=dp$id[1], specification='', body = spc)
+  request_bo_raylight_endpoint(request, documents=document_id, dataproviders=dp$id[1], specification='', body = spc)
 }

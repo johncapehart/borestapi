@@ -4,7 +4,7 @@
 \alias{get_bo_control_selection}
 \title{Get the selection state of a document control}
 \usage{
-get_bo_control_selection(conn, document, control_name)
+get_bo_control_selection(conn, document, report = "", control)
 }
 \arguments{
 \item{conn}{Connection reference}

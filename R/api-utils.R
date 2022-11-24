@@ -19,26 +19,6 @@ report_request_result <- function(request, response, ...) {
   }
 }
 
-#' Report error in API call
-#'
-#' @param request httr::request
-#' @param response httr::request
-#' @param ... list of text arguments for message
-#'
-#' @noRd
-report_request_result2 <- function(request, response, ...) {
-  inputs <- list(...)
-  message1 <- paste(head(inputs, 1), collapse = " ")
-  message2 <- paste(tail(inputs, -1), collapse = " ")
-  # if(is.na(message1)||message1=='NA') #browser()()
-  if (httr2::resp_status(resonse) == 200) {
-    logger::log_info(paste(message1, "succeeded", ";d", message2, response$url))
-  } else {
-    logger::log_error(paste(message1, "failed", response$status_code, ";d", message2, response$url, request$verb, content(response, as='text', encoding='UTF-8')))
-    # throw()
-  }
-}
-
 #' Return Id from item properties or from numeric value
 #'
 #' @param item Item properties as tibble or item id as numeric value
@@ -160,7 +140,7 @@ paste_url <- function(...) {
 
 quiet_is_numeric <- function(x) {
   if (is_atomic(x)) {
-    result <- purrr::quietly(function(x)!is.na(as.numeric(x)))(x)$result
+    result <- is_null_or_empty(x) || purrr::quietly(function(x)!is.na(as.numeric(x)))(x)$result
     return (result)
   }
   return(FALSE)
@@ -188,7 +168,13 @@ bind_result <- function(result, stop_name = NULL) {
 
 return_bo_response_content <- function(response) {
   if (response$headers[['content-type']] %>% str_detect('json')) {
-    httr2::resp_body_json(response, simplifyVector = TRUE) %>% bind_rows()
+    result <- httr2::resp_body_json(response, simplifyVector = TRUE)
+    if (length(names(result)) == 1) {
+      result <- flatten_scalars(result)
+    } else {
+      result <- result %>% bind_rows()
+    }
+    result
   } else if (response$headers[['content-type']] %>% str_detect('text')) {
     httr2::resp_body_string(response)
   } else {
@@ -197,36 +183,31 @@ return_bo_response_content <- function(response) {
   }
 }
 
-get_bo_raylight_endpoint <- function(conn, ..., querystring, accept=NULL) {
+request_bo_raylight_endpoint <- function(conn, ..., query, accept=NULL, body = NULL, method = NULL) {
   request <- check_bo_connection(conn)
-  url <- paste_url(request$url, "raylight/v1", ...)
+  # wrap request so it can be modified inside of lapply
+  ref <- new_bo_request_reference(conn)
 
-  if (!is_null_or_empty(querystring)) {
-    url <- paste0(url, querystring)
+  ref$request %<>% httr2::req_url_path_append("raylight/v1")
+
+  path <- list(...)
+  names(path) %>% lapply(function(x)ref$request %<>% httr2::req_url_path_append(x,path[[x]]))
+
+  if (!is_null_or_empty(query)) {
+    ref$request %<>% httr2::req_url_query(!!!query)
   }
   if (!is_empty(accept)) {
-    request$headers[['Accept']]=accept
+    ref$request %<>% httr2::req_headers('Accept'=accept)
   }
-  request$url <- url
-  response <- httr2::req_perform(request)
-  report_request_result(request, response, ";Children", "get_bo_raylight_endpoint 197")
-  return_bo_response_content(response)
-}
-
-put_bo_raylight_endpoint <- function(conn, ..., querystring, body = NULL) {
-  request <- check_bo_connection(conn)
-  url <- paste_url(request$url, "raylight/v1", ...)
-
-  if (!is_null_or_empty(querystring)) {
-    url <- paste0(url, querystring)
-  }
-  request$url <- url
   if (!is.null(body)) {
-      request %<>% httr2::req_body_json(body)
+    ref$request %<>% httr2::req_body_json(body)
+    ref$request %<>% httr2::req_method(method='PUT')
   }
-  request %<>% httr2::req_method('PUT')
-  response <- httr2::req_perform(request)
-  report_request_result(request, response, ";Children", "put_bo_raylight_endpoint 214")
+  if (!is.null(method)) {
+    ref$request %<>% httr2::req_method(method=method)
+  }
+  response <- httr2::req_perform(ref$request)
+  report_request_result(request, response, ";Children", "request_bo_raylight_endpoint 197")
   return_bo_response_content(response)
 }
 
