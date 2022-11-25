@@ -1,5 +1,3 @@
-#' @importFrom stringr str_to_upper str_flatten
-#'
 #' @importFrom logger log_debug log_error log_errors log_fatal log_info log_warn log_trace log_with_separator
 #' @importFrom logger layout_simple layout_glue_colors layout_json layout_glue_generator
 #' @importFrom logger log_threshold DEBUG ERROR FATAL INFO WARN TRACE
@@ -8,7 +6,7 @@
 #'
 is_null_or_empty <- function(v) {
   if (!missing(v) && !is.null(v) && !is.na(v) && length(v) > 0) {
-    return(!(str_length(v) > 0))
+    return(!(stringr::str_length(v) > 0))
   }
   return(TRUE)
 }
@@ -67,7 +65,7 @@ my_log_colorize <- function(msg, level) {
 #' @export
 #'
 split_message<-function(msg, level) {
-  smsg <- str_split(paste0('x', msg), ';(?=(I|D|T|i|d|t))')[[1]]
+  smsg <- stringr::str_split(paste0('x', msg), ';(?=(I|D|T|i|d|t))')[[1]]
   smsg2 <- lapply(smsg,  function(s) {
     tag = stringr::str_to_lower(substring(s,1,1))
     s <- trimws(substring(s, 2)) # remove first character

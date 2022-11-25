@@ -1,8 +1,6 @@
 #' @importFrom methods hasArg new
 #' @importFrom httr2 request
-#' @importFrom utils head tail timestamp
-#' @importFrom magrittr %<>% %>%
-#' @importFrom jsonlite toJSON fromJSON
+#' @importFrom utils head tail
 #' @include api-utils.R
 #'
 # prerequisites ----------------------------------------------------------------
@@ -123,7 +121,7 @@ get_new_token <- function(conn, server, username, password = NULL) {
   response <- httr2::req_perform(request)
   report_request_result(conn$request, response, "New connection", "open_bo_connection line 146")
   token <- httr2::resp_body_json(response)$logontoken
-  if (!is.null(token) && str_length(token) > 0) {
+  if (!is.null(token) && stringr::str_length(token) > 0) {
     conn$request %<>% httr2::req_headers("X-SAP-LogonToken" = token)
     save_item(username, server, token, table_name = get_token_table_name())
     log_with_separator("New token for ", paste(server, username), separator='+', width=120)

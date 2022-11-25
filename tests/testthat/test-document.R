@@ -61,5 +61,6 @@ test_that(paste("Delete document works"), {
   d1 <- get_bo_document_details(conn, document)
   document_copy <- get_bo_item(conn, name = paste(d1$name,'Copy'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
   d1 <- get_bo_document_details(conn, document_copy)
-  delete_bo_document(conn, d1)})
+  delete_bo_document(conn, d1)
+})
 

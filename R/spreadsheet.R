@@ -10,7 +10,7 @@
 post_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = filename, format = 'json') {
   request <- check_bo_connection(conn)
   mimeType <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  attachmentInfos <- list("spreadsheet" = list("name" = filename, "folderId" = parent_folder)) %>% toJSON()
+  attachmentInfos <- list("spreadsheet" = list("name" = filename, "folderId" = parent_folder)) %>% jsonlite::toJSON()
   request %<>% httr2::req_body_multipart(attachmentContent = curl::form_file(filepath, type = mimeType),
                                  attachmentInfos = curl::form_data(attachmentInfos, type='application/json'))
   request %<>% httr2::req_url_path_append("raylight/v1/spreadsheets") %>%
@@ -55,7 +55,7 @@ get_bo_spreadsheet_details <- function(conn, filename, parent_folder) {
     request %<>% httr2::req_url_path_append("raylight/v1/spreadsheets", sheet$SI_ID)
     response <- httr2::req_perform(request)
     report_request_result( request, response, paste("GET file", filename, sheet$SI_ID), "get_bo_spreadsheet_details", 100)
-    result <- httr2::resp_body_json(response) %>% flatten_scalars() %>% bind_rows()
+    result <- httr2::resp_body_json(response) %>% flatten_scalars() %>% dplyr::bind_rows()
     return(result)
   }
 }

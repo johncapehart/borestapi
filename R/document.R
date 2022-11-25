@@ -1,6 +1,3 @@
-#' @importFrom magrittr %<>% %>%
-#' @importFrom tibble tibble enframe as_tibble is_tibble
-#' @importFrom tidyr pivot_wider
 #' @include api-utils.R
 
 # Data ----------------------------------------------------------------
@@ -22,7 +19,7 @@ get_bo_data_provider_data <- function(conn, document, data_provider, ...) {
   request %<>% httr2::req_url_path_append("raylight/v1/documents", document_id)
   request %<>% httr2::req_url_path_append("dataproviders", data_provider, 'flows', "0")
   response <- httr2::req_perform(request)
-  df <- httr2::resp_body_string(response) %>% read_delim(delim = ";", show_col_types = FALSE, ...)
+  df <- httr2::resp_body_string(response) %>% readr::read_delim(delim = ";", show_col_types = FALSE, ...)
   report_request_result(request, response, paste("Get document data rows", nrow(df), "columns", ncol(df)), "get_bo_data_provider_data", 246)
   df
 }
@@ -159,7 +156,7 @@ get_bo_document_details <- function(conn, document) {
   request %<>% httr2::req_url_path_append("/v1/documents", document_id)
   response <- httr2::req_perform(request)
   report_request_result(request, response, paste(";d GET", document_id, ";t get_bo_document_details line 163"))
-  httr2::resp_body_json(response, simplifyVector = TRUE) %>% bind_rows()
+  httr2::resp_body_json(response, simplifyVector = TRUE) %>% dplyr::bind_rows()
 }
 
 refresh_bo_data_provider <- function(conn, document_id, provider_id) {

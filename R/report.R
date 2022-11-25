@@ -1,6 +1,6 @@
 parse_bo_report_name <- function(report) {
   # report may have a 'reports' prefix
-  il <- str_split(report, '/') %>% unlist()
+  il <- stringr::str_split(report, '/') %>% unlist()
   if (length(il) == 1) {
     # no prefix
     report = il
@@ -53,7 +53,7 @@ get_bo_report_data <- function(conn, document, report = '', skip=0) {
   report_details <- get_bo_report_details(conn, document, report)
   report_id <- report_details$id
   result <- request_bo_raylight_endpoint(conn, documents = document_id, reports = report_id, accept='text/csv')
-  dataset <- result %>% read_delim(delim = ";",show_col_types = FALSE, skip = skip)
+  dataset <- result %>% readr::read_delim(delim = ";",show_col_types = FALSE, skip = skip)
   logger::log_info(paste(nrow(dataset), "rows retrieved from report", "{report_details$name}", "in document", "{document}", ";get_bo_report_data 220"))
   return(dataset)
 }
@@ -84,7 +84,7 @@ get_bo_report_element_data <- function(conn, document, report, element) {
   metadata <- data$metadata$value
   rows <- data$row$value[[1]]
   names <- metadata[['$']]
-  result <- tibble(value=rows, name=names) %>% pivot_wider()
+  result <- tibble::tibble(value=rows, name=names) %>% tidyr::pivot_wider()
   result$document <- list(document)
   result$document_id <- document_id
   result$report_id <- report_id
@@ -102,7 +102,7 @@ get_bo_report_element_data <- function(conn, document, report, element) {
 #' @return Inputs as tibble
 #' @export
 get_bo_report_inputs <- function(conn, document, inputs) {
-  il <- str_split(inputs, '/') %>% unlist()
+  il <- stringr::str_split(inputs, '/') %>% unlist()
   if (il[1] == 'reports') {
     report <- il[2]
     element <- il[3]

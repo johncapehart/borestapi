@@ -106,7 +106,7 @@ dateToBOQueryFilterDate <- function(d) {
 }
 
 queryFilterDateToDate <- function(d) {
-  scaledDate = as.numeric(str_sub(d, end=-6))/864
+  scaledDate = as.numeric(stringr::str_sub(d, end=-6))/864
   as.Date(as.POSIXct(scaledDate, origin="1970-01-01"))
 }
 

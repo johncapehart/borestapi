@@ -29,7 +29,7 @@ get_bo_item_id <- function(item) {
   if (quiet_is_numeric(item)) {
     return(item)
   }
-  if (is_list(item) || is_tibble(item) || is.environment(item)) {
+  if (is_list(item) || tibble::is_tibble(item) || is.environment(item)) {
     if ('SI_ID' %in% names(item)) {
       # for tibble returned by querys
       return(item$SI_ID)
@@ -51,7 +51,7 @@ append_query_conditions <- function(query, name = NULL, parent_folder = NULL, ki
   }
 
   needAnd = FALSE
-  if (hasArg("name") && !is.null(name) && str_length(name) > 0) {
+  if (hasArg("name") && !is.null(name) && stringr::str_length(name) > 0) {
     if (grepl('%', name, fixed = TRUE)) {
       query <- paste0(query, " SI_NAME LIKE '", name, "'")
     } else {
@@ -64,11 +64,11 @@ append_query_conditions <- function(query, name = NULL, parent_folder = NULL, ki
       paste0(query, addAnd(needAnd), " SI_PARENT_FOLDER=", parent_folder)
     needAnd = TRUE
   }
-  if (hasArg("kind") && !is.null(kind) && str_length(kind) > 0) {
+  if (hasArg("kind") && !is.null(kind) && stringr::str_length(kind) > 0) {
     query <- paste0(query, addAnd(needAnd), " SI_KIND='", kind, "'")
     needAnd = TRUE
   }
-  if (hasArg("owner") && !is.null(owner) && str_length(owner) > 0) {
+  if (hasArg("owner") && !is.null(owner) && stringr::str_length(owner) > 0) {
     query <- paste0(query, addAnd(needAnd), " SI_OWNER='", owner, "'")
     needAnd = TRUE
   }
@@ -78,9 +78,9 @@ append_query_conditions <- function(query, name = NULL, parent_folder = NULL, ki
 bind_bo_query_results_to_tibble <- function(entries) {
   items <- entries %>%
     lapply(function(x) {
-      as_tibble(x)
+      tibble::as_tibble(x)
     }) %>%
-    bind_rows()
+    dplyr::bind_rows()
   return(items)
 }
 
@@ -133,7 +133,7 @@ paste_url <- function(...) {
   n <- names(x)
   if (length(n) > 0)
     x <- Map(list, n, x) %>% unlist()
-  x <- as.list(x) %>% keep(str_length(.) > 0)
+  x <- as.list(x) %>% keep(stringr::str_length(.) > 0)
   x %>% do.call(what = (function(...)
     paste(..., sep = "/")))
 }
@@ -155,9 +155,9 @@ flatten_scalars <- function(list, stop_name = NULL) {
 
 bind_list <- function(list) {
   if (length(names(list)) > 1) {
-    list %>% bind_rows()
+    list %>% dplyr::bind_rows()
   } else {
-    list %>% purrr::map(purrr::flatten_dfr) %>% bind_rows()
+    list %>% purrr::map(purrr::flatten_dfr) %>% dplyr::bind_rows()
   }
 }
 
@@ -167,15 +167,15 @@ bind_result <- function(result, stop_name = NULL) {
 }
 
 return_bo_response_content <- function(response) {
-  if (response$headers[['content-type']] %>% str_detect('json')) {
+  if (response$headers[['content-type']] %>% stringr::str_detect('json')) {
     result <- httr2::resp_body_json(response, simplifyVector = TRUE)
     if (length(names(result)) == 1) {
       result <- flatten_scalars(result)
     } else {
-      result <- result %>% bind_rows()
+      result <- result %>% dplyr::bind_rows()
     }
     result
-  } else if (response$headers[['content-type']] %>% str_detect('text')) {
+  } else if (response$headers[['content-type']] %>% stringr::str_detect('text')) {
     httr2::resp_body_string(response)
   } else {
     # otherwise some kind of raw content
