@@ -36,6 +36,10 @@ decrypt_object <- function(cipher) {
 # database operations  ----------------------------------------------------------------
 
 get_database_path <- function() {
+  config_dir <- file.path(get_home_path(), '.config')
+  if (!dir.exists(config_dir)) {
+    dir.create(config_dir)
+  }
   parent_dir <- file.path(get_home_path(), '.config/borestapi')
   if (!dir.exists(parent_dir)) {
     dir.create(parent_dir)
