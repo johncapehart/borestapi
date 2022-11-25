@@ -118,7 +118,7 @@ get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.g
         items %<>% dplyr::mutate(value = decrypt_object(base64enc::base64decode(value)))
       }
   } else {
-    items <- tibble(timestamp = double(0), usernamekey = character(0), serverkey = character(0), value = character(0))
+    items <- tibble::tibble(timestamp = double(0), usernamekey = character(0), serverkey = character(0), value = character(0))
   }
   close_database(db_conn)
   return(items)
