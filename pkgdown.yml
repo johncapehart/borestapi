@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   report-vignette: report-vignette.html
   speadsheet-vignette: speadsheet-vignette.html
-last_built: 2022-11-25T21:16Z
+last_built: 2022-11-25T21:42Z
 urls:
   reference: https://johncapehart.github.io/borestapi/reference
   article: https://johncapehart.github.io/borestapi/articles
