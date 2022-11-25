@@ -27,7 +27,7 @@ get_home_path <- function() {
 #' @return Response content or NULL
 #' @export
 get_user_rights <- function(request) {
-  request$url = paste0(request$url, '/raylight/v1/session/rights')
+  request %<>% httr2::req_url_path_append('raylight/v1/session/rights')
   response <- httr2::req_perform(request)
   if (httr2::resp_status(response) == 200) {
     return(httr2::resp_body_json(response))
@@ -44,7 +44,8 @@ get_user_rights <- function(request) {
 #' @export
 #' @noRd
 check_bo_connection_state <- function(request) {
-    rights <- get_user_rights(request)
+  request %<>% httr2::req_error(is_error = function(resp) FALSE)
+  rights <- get_user_rights(request)
     return(!is_empty(rights))
 }
 
@@ -116,7 +117,8 @@ get_new_token <- function(conn, server, username, password = NULL) {
     "auth" = "secWinAD"
   )
   request <- conn$request
-  request$url <- paste0(conn$request$url, "/v1/logon/long") # append longon endpoint to url
+  request %<>% httr2::req_headers('X-SAP-LogonToken'='')
+  request %<>% httr2::req_url_path_append( 'v1/logon/long') # append longon endpoint to url
   request %<>% httr2::req_body_json(body)
   response <- httr2::req_perform(request)
   report_request_result(conn$request, response, "New connection", "open_bo_connection line 146")

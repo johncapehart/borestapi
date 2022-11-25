@@ -61,5 +61,6 @@ Suggests:
     tinytex,
     tools
 Config/testthat/edition: 3
+Config/testthat/start-first: *utils, *cache, document, report
 VignetteBuilder: knitr
 URL: https://johncapehart.github.io/borestapi/

@@ -101,21 +101,21 @@ upload_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = file
   sheet
 }
 
-upload_bo_mtcars <- function(n = 100) {
-  df <- mtcars
-  filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  library(openxlsx)
-  # https://stackoverflow.com/questions/21502332/generating-random-dates
-  rdate <- function(x, min = paste0(format(Sys.Date(), '%Y'), '-01-01'), max = paste0(format(Sys.Date(), '%Y'), '-12-31')) {
-    dates <- sample(seq(as.Date(min), as.Date(max), by = "day"), x, replace = TRUE)
-  }
-  df$date = rdate(nrow(mtcars))
-  df <- tibble::rownames_to_column(df, "model")
-  df <- head(df, n)
-  wb2 <- createWorkbook(mtcars)
-  sheet <- wb2 %>% addWorksheet('Cars')
+#' @title Upload a dataframe
+#'
+#' @param df Dataframe
+#' @param filename Name of uploaded file
+#' @param parent_folder Parent folder to upload file to
+#' @param sheetname Name of the sheet
+#'
+#' @return NA
+#' @export
+upload_df <- function(conn, df,filename, parent_folder, sheetname = 'Sheet 1') {
+  wb2 <- createWorkbook()
+  sheet <- wb2 %>% addWorksheet(sheetname)
   writeDataTable(wb2, sheet, df)
   saveWorkbook(wb2, filename, overwrite = TRUE)
-  upload_bo_spreadsheet(conn, filename, parent_folder = folder_id)
+  upload_bo_spreadsheet(conn, filename, parent_folder = parent_folder)
+  file.remove(filename)
 }
+
