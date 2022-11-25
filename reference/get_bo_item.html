@@ -103,11 +103,11 @@ than one item is returned by the query the tibble will contain multiple rows</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># get the id of an item. Normally you would call open_bo_connection()</span></span></span>
 <span class="r-in"><span><span class="va">conn</span><span class="op">=</span> <span class="fu"><a href="open_bo_connection.html">open_bo_connection</a></span><span class="op">(</span><span class="op">)</span>; <span class="fu">get_bo_item</span><span class="op">(</span><span class="va">conn</span>, name<span class="op">=</span><span class="st">'test'</span>,parent_folder<span class="op">=</span><span class="fl">3944223</span><span class="op">)</span><span class="op">$</span><span class="va">SI_ID</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in tibble(timestamp = double(0), usernamekey = character(0), serverkey = character(0),     value = character(0)):</span> could not find function "tibble"</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Could not resolve host: biprws</span>
 <span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in rlang::is_empty(conn):</span> object 'conn' not found</span>
 <span class="r-in"><span><span class="co"># get all the Excel documents in a folder</span></span></span>
 <span class="r-in"><span><span class="fu">get_bo_item</span><span class="op">(</span><span class="fu"><a href="open_bo_connection.html">open_bo_connection</a></span><span class="op">(</span><span class="op">)</span>,parent_folder <span class="op">=</span> <span class="fl">3944223</span>, kind <span class="op">=</span> <span class="st">'Excel'</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in tibble(timestamp = double(0), usernamekey = character(0), serverkey = character(0),     value = character(0)):</span> could not find function "tibble"</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Could not resolve host: biprws</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
