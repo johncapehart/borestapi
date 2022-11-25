@@ -110,29 +110,34 @@ queryFilterDateToDate <- function(d) {
   as.Date(as.POSIXct(scaledDate, origin="1970-01-01"))
 }
 
-#' @title Set the date range for a control
+#' @title Get the date range for a data provider specification
+#' @param conn Connection reference
+#' @param document Document as numeric id or tibble of properties
+#' @param dataprovider Name of data provider from document
+#'
+#' @return XML string of data provider specification
+#' @export
+#' @noRd
+get_bo_data_provider_specification <- function(conn, document, dataprovider) {
+  request <- check_bo_connection(conn)
+  document_id <- get_bo_item_id(document)
+  dp <- get_bo_data_provider_details(conn, document, data_provider = dataprovider)
+  request_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id, specification='', accept = 'text/xml')
+}
+
+#' @title Set the date range provider specification
 #' @details Not tested
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
 #' @param dataprovider Name of data provider from document
-#' @param startDate Start of date range
-#' @param endDate End of date range
+#' @param specification XML specification of provider
 #'
-#' @return Response content
+#' @return NULL
 #' @export
 #' @noRd
-set_bo_data_source_date_range <- function(conn, document, dataprovider, startDate, endDate) {
+set_bo_data_provider_specification <- function(conn, document, dataprovider, specifiation) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
-  dp <- request_bo_raylight_endpoint(conn, documents=document_id, dataproviders='')
-  dp %>% dplyr::filter(name == dataprovider)
-  sdp <- request_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dp$id[1])
-  request %<>% httr2::req_headers('Accept' = 'text/xml')
-  spc <- request_bo_raylight_endpoint(request, documents=document_id, dataproviders=sdp$id, specification='')
-  dates <- str_extract_all(spc, 'value="[0-9]{13}" type="Date"') %>% map(~str_extract(., pattern='[0-9]{13}')) %>% unlist()
-  spc<-str_replace(spc, dates[1], dateToBOQueryFilterDate(startDate)) %>% str_replace(pattern = dates[2], replacement = dateToBOQueryFilterDate(endDate))
-  request %<>% httr2::req_headers('Content-Type'= 'text/xml',
-    'Accept' = 'application/json'
-  )
-  request_bo_raylight_endpoint(request, documents=document_id, dataproviders=dp$id[1], specification='', body = spc)
+  dp <- get_bo_data_provider_details(conn, document, data_provider = dataprovider)
+  request_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dataprovider, specification='', accept = 'application/json', body = specifiation, content_type = 'text/xml')
 }

@@ -90,3 +90,28 @@ test_that(paste("Setting document control selected items"), {
   expect_gt(nrow(df1), nrow(df2))
 })
 
+test_that(paste('Data source specification is retrieved'), {
+  conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
+  document <- get_bo_item(conn, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), kind = 'Webi') %>%
+    dplyr::filter(str_detect(`SI_NAME`, Sys.getenv('BO_TEST_DOCUMENT_NAME_PATTERN')))
+
+  provider <- get_bo_data_provider_details(conn, document)
+  provider %<>% dplyr::filter(dataSourceType=='unx')
+  spc <- get_bo_data_provider_specification(conn, document, provider$id)
+  xml <- xml2::read_xml(spc)
+  expect_equal(length(xml),2)
+})
+
+test_that(paste('Data source specification can be set'), {
+  conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
+  document <- get_bo_item(conn, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), kind = 'Webi') %>%
+    dplyr::filter(str_detect(`SI_NAME`, Sys.getenv('BO_TEST_DOCUMENT_NAME_PATTERN')))
+
+  provider <- get_bo_data_provider_details(conn, document)
+  provider %<>% dplyr::filter(dataSourceType=='unx')
+  spc <- get_bo_data_provider_specification(conn, document, provider$id)
+  xml <- xml2::read_xml(spc)
+  expect_equal(length(xml),2)
+  result <- set_bo_data_provider_specification(conn, document, provider$id, spc)
+  expect_no_message('Error')
+})

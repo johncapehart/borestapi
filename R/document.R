@@ -177,7 +177,8 @@ refresh_bo_data_provider <- function(conn, document_id, provider_id) {
 #' @export
 get_bo_data_provider_details <- function(conn, document, data_provider = '') {
   document_id <- get_bo_item_id(document)
-  dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = data_provider) %>% bind_list()
+  dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = data_provider)
+  dp %<>% bind_list()
   return(dp)
 }
 

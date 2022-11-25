@@ -183,7 +183,7 @@ return_bo_response_content <- function(response) {
   }
 }
 
-request_bo_raylight_endpoint <- function(conn, ..., query, accept=NULL, body = NULL, method = NULL) {
+request_bo_raylight_endpoint <- function(conn, ..., query, accept=NULL, body = NULL, content_type = NULL, method = NULL) {
   request <- check_bo_connection(conn)
   # wrap request so it can be modified inside of lapply
   ref <- new_bo_request_reference(conn)
@@ -200,14 +200,19 @@ request_bo_raylight_endpoint <- function(conn, ..., query, accept=NULL, body = N
     ref$request %<>% httr2::req_headers('Accept'=accept)
   }
   if (!is.null(body)) {
-    ref$request %<>% httr2::req_body_json(body)
+    if (is_empty(content_type) || content_type == 'application/json') {
+      ref$request %<>% httr2::req_body_json(body)
+    } else {
+      ref$request %<>% httr2::req_body_raw(body) %>%
+        httr2::req_headers('Content-Type' = content_type)
+    }
     ref$request %<>% httr2::req_method(method='PUT')
   }
   if (!is.null(method)) {
     ref$request %<>% httr2::req_method(method=method)
   }
   response <- httr2::req_perform(ref$request)
-  report_request_result(request, response, ";Children", "request_bo_raylight_endpoint 197")
+  report_request_result(ref$request, response, ";Children", "request_bo_raylight_endpoint 197")
   return_bo_response_content(response)
 }
 
