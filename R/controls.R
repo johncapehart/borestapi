@@ -34,7 +34,7 @@ get_bo_control_details <- function(conn, document, report = NULL, control = '', 
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param control_name Name of control
+#' @param control Identifier of control
 #'
 #' @return '@all' or tibble of selected levels
 #' @export
@@ -54,7 +54,7 @@ get_bo_control_selection <- function(conn, document, report = '', control) {
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param control_name Name of the control
+#' @param control Identifier of control
 #'
 #' @return Control selection set as tibble
 #' @export
@@ -84,7 +84,6 @@ get_bo_control_selection_set <- function(conn, document, report = '', control = 
 #'
 #' @return Response content
 #' @export
-#' @noRd
 set_bo_control_selection <- function(conn, document, report = NULL, control, selections = NULL, all = FALSE) {
   document_id <- get_bo_item_id(document)
   inputcontrol <-get_bo_control_details(conn, document, report, control)
@@ -117,7 +116,6 @@ queryFilterDateToDate <- function(d) {
 #'
 #' @return XML string of data provider specification
 #' @export
-#' @noRd
 get_bo_data_provider_specification <- function(conn, document, dataprovider) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
@@ -126,7 +124,7 @@ get_bo_data_provider_specification <- function(conn, document, dataprovider) {
 }
 
 #' @title Set the date range provider specification
-#' @details Not tested
+#'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
 #' @param dataprovider Name of data provider from document
@@ -134,7 +132,6 @@ get_bo_data_provider_specification <- function(conn, document, dataprovider) {
 #'
 #' @return NULL
 #' @export
-#' @noRd
 set_bo_data_provider_specification <- function(conn, document, dataprovider, specifiation) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)

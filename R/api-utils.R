@@ -121,7 +121,7 @@ get_bo_item <- function(conn, name = NULL, parent_folder = NULL, kind = NULL, ow
   if (response$status_code==200) {
     results <- bind_bo_query_results_to_tibble(httr2::resp_body_json(response)$entries)
     if (nrow(results) > 1) {
-      results <- dplyr::distinct(results, `SI_ID`, .keep_all=TRUE)
+      results <- dplyr::distinct(results, .data$SI_ID, .keep_all=TRUE)
     }
   }
   return(results)

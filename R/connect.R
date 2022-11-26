@@ -1,5 +1,6 @@
 #' @importFrom httr2 request
 #' @importFrom utils head tail
+#' @importFrom methods new
 #' @include api-utils.R
 #'
 # prerequisites ----------------------------------------------------------------
@@ -17,7 +18,7 @@ new_bo_request_reference <- setRefClass("request_reference_class", fields = list
 #' @param conn connection reference
 #'
 #' @return Response content or NULL
-#' @export
+#' @noRd
 get_user_rights <- function(request) {
   request %<>% httr2::req_url_path_append('raylight/v1/session/rights')
   response <- httr2::req_perform(request)
@@ -33,7 +34,6 @@ get_user_rights <- function(request) {
 #' @param server Server name and port to connect to
 #'
 #' @return TRUE if connection is valid, FALSE otherwise
-#' @export
 #' @noRd
 check_bo_connection_state <- function(request) {
   request %<>% httr2::req_error(is_error = function(resp) FALSE)
@@ -150,15 +150,14 @@ get_new_request <- function(server, username) {
 #' @param password (optional)
 #' @param save_password Save the password encrypted in the database.
 #' Saving password is required for automatic reconnection on token expiration
-#' @param conn Connection reference to reuse (optional)
 #'
 #' @return Connection reference
 #' @examples
 #' # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME".
 #' # and password in the database
-#' open_bo_connection()
+#' conn <- open_bo_connection()
 #' # open a connection to a server using username and password
-#' open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
+#' conn <- open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
 #' @export
 open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
                                username = Sys.getenv("BO_USERNAME"),

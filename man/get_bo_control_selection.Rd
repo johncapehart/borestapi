@@ -11,7 +11,7 @@ get_bo_control_selection(conn, document, report = "", control)
 
 \item{document}{Document as numeric id or tibble of properties}
 
-\item{control_name}{Name of control}
+\item{control}{Identifier of control}
 }
 \value{
 '@all' or tibble of selected levels

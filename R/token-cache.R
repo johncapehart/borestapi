@@ -78,7 +78,6 @@ get_token_table_name <- function() {
 #'
 #' @param table_name
 #'
-#' @export
 #' @noRd
 clear_table <- function(table_name= get_token_table_name()) {
   db_conn <- open_database()
@@ -92,7 +91,6 @@ clear_table <- function(table_name= get_token_table_name()) {
 #'
 #' @param table_name
 #'
-#' @export
 #' @noRd
 get_table_row_count <- function(table_name= get_token_table_name()) {
   db_conn <- open_database()
@@ -117,8 +115,6 @@ empty_row <- function() {
 #'
 #' @param table_name
 #'
-#' @export
-#' @noRd
 get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), table_name = get_token_table_name()) {
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
@@ -130,7 +126,7 @@ get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.g
         dplyr::arrange(.data$timestamp)
       log_debug("get_saved_items item count", nrow(items), ";t get_saved_tokens line 328")
       if (nrow(items) > 0) {
-        items %<>% dplyr::mutate(value = decrypt_object(base64enc::base64decode(`value`)))
+        items %<>% dplyr::mutate(value = decrypt_object(base64enc::base64decode(.data$value)))
       }
   } else {
     items <- empty_row()
@@ -145,7 +141,6 @@ get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.g
 #' @param username  Name of the user
 #' @param server Name of the server
 #'
-#' @export
 #' @noRd
 remove_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), table_name = get_token_table_name()) {
   log_debug("removing item", username, server, table_name, ";remove_item line 316")
@@ -166,8 +161,6 @@ remove_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.geten
 #' @param server Name of the server
 #' @param value Value for item
 #'
-#'
-#' @export
 #' @noRd
 save_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), value, table_name = get_token_table_name()) {
   db_conn <- open_database()

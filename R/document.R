@@ -7,7 +7,7 @@
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param provider_id Id of the provider
+#' @param data_provider Identifier of the provider
 #' @param ... Parameters for read_delim
 #'
 #' @return Tibble of data
@@ -70,7 +70,6 @@ close_bo_document <- function(conn, document, save = FALSE) {
 #'
 #' @return Response content
 #' @export
-#' @noRd
 create_bo_document <- function(conn, name, parent_folder) {
   request <- check_bo_connection(conn)
   request %<>% httr2::req_url_path_append("raylight/v1/documents") %>%
@@ -89,7 +88,6 @@ create_bo_document <- function(conn, name, parent_folder) {
 #'
 #' @return Response content
 #' @export
-#' @noRd
 copy_bo_document <- function(conn, document, parent_folder, destination_document_name) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)

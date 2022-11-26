@@ -11,9 +11,9 @@ get_bo_data_provider_data(conn, document, data_provider, ...)
 
 \item{document}{Document as numeric id or tibble of properties}
 
-\item{...}{Parameters for read_delim}
+\item{data_provider}{Identifier of the provider}
 
-\item{provider_id}{Id of the provider}
+\item{...}{Parameters for read_delim}
 }
 \value{
 Tibble of data
