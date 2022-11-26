@@ -165,7 +165,7 @@ refresh_bo_data_provider <- function(conn, document, data_provider = NULL) {
   document_id <- get_bo_item_id(document)
   dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '') %>% bind_list()
   if (!is_null_or_empty(data_provider)) {
-    dp %<>% dplyr::filter(`id` == data_provider)
+    dp %<>% dplyr::filter(.data$id == data_provider)
   }
   dp$id %>% sapply(function(x) refresh_bo_data_provider0(conn, document_id, x))
 }

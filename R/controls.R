@@ -25,7 +25,7 @@ get_bo_control_details <- function(conn, document, report = NULL, control = '', 
     result <- request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = '', query = query)
   }
   if (!is_null_or_empty(control)) {
-    result <- result %>% dplyr::filter(`name` == control | `id` == control)
+    result <- result %>% dplyr::filter(.data$name == control | .data$id == control)
   }
   result
 }

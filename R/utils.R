@@ -82,7 +82,7 @@ split_message<-function(msg, level) {
 }
 
 # https://www.r-bloggers.com/2013/04/package-wide-variablescache-in-r-packages/
-cacheEnv <- new.env()
+cacheEnv <- base::new.env()
 
 init_log <- function() {
   if (!exists('logger_ready', envir=cacheEnv) || !get('logger_ready', envir=cacheEnv)) {

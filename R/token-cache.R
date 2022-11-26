@@ -109,6 +109,10 @@ get_table_row_count <- function(table_name= get_token_table_name()) {
 
 # Item operations ----------------------------------------------------------------
 
+empty_row <- function() {
+  tibble::tibble(timestamp = double(0), usernamekey = character(0), serverkey = character(0), value = character(0))
+}
+
 #' Get items from table
 #'
 #' @param table_name
@@ -121,15 +125,15 @@ get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.g
   items <- NULL
   if ((length(table) > 0)) {
       items <- dbReadTable(db_conn, table_name)
-      items %<>% dplyr::filter(`serverkey` == server) %>%
-        dplyr::filter(`usernamekey` == username) %>%
-        dplyr::arrange(`timestamp`)
+      items %<>% dplyr::filter(.data$serverkey == server) %>%
+        dplyr::filter(.data$usernamekey == username) %>%
+        dplyr::arrange(.data$timestamp)
       log_debug("get_saved_items item count", nrow(items), ";t get_saved_tokens line 328")
       if (nrow(items) > 0) {
         items %<>% dplyr::mutate(value = decrypt_object(base64enc::base64decode(`value`)))
       }
   } else {
-    items <- tibble::tibble(`timestamp` = double(0), `usernamekey` = character(0), `serverkey` = character(0), `value` = character(0))
+    items <- empty_row()
   }
   close_database(db_conn)
   return(items)
@@ -168,7 +172,7 @@ remove_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.geten
 save_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), value, table_name = get_token_table_name()) {
   db_conn <- open_database()
   value <- base64enc::base64encode(encrypt_object(value))
-  new_values <- tibble::tibble(`timestamp` = lubridate::now(), `usernamekey` = username, `serverkey` = server, `value` = value)
+  new_values <- tibble::tibble(timestamp = lubridate::now(), usernamekey = username, serverkey = server, value = value)
   table <- get_table(db_conn, table_name)
   if (length(table) > 0) {
     dbAppendTable(db_conn, table_name, new_values)
