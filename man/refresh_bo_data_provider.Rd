@@ -11,7 +11,7 @@ refresh_bo_data_provider(conn, document, data_provider = NULL)
 
 \item{document}{Document as numeric id or tibble of properties}
 
-\item{dataSourceType}{Type of data source to refresh}
+\item{data_provider}{Identifier of the data provider}
 }
 \value{
 Response content

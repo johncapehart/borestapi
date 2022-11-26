@@ -7,6 +7,8 @@
 upload_df(conn, df, filename, parent_folder, sheetname = "Sheet 1")
 }
 \arguments{
+\item{conn}{Connection reference}
+
 \item{df}{Dataframe}
 
 \item{filename}{Name of uploaded file}

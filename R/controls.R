@@ -34,6 +34,7 @@ get_bo_control_details <- function(conn, document, report = NULL, control = '', 
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
+#' @param report Identifier of report for report level controls, blank otherwise
 #' @param control Identifier of control
 #'
 #' @return '@all' or tibble of selected levels
@@ -54,11 +55,11 @@ get_bo_control_selection <- function(conn, document, report = '', control) {
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
+#' @param report Identifier of report for report level controls, blank otherwise
 #' @param control Identifier of control
 #'
 #' @return Control selection set as tibble
 #' @export
-#' @noRd
 get_bo_control_selection_set <- function(conn, document, report = '', control = '') {
   document_id <- get_bo_item_id(document)
   inputcontrols <- get_bo_control_details(conn, document, report, control)
@@ -78,6 +79,7 @@ get_bo_control_selection_set <- function(conn, document, report = '', control = 
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
+#' @param report Identifier of report for report level controls, blank otherwise
 #' @param control_name Name of the control
 #' @param selections Selected items
 #' @param all Select all items

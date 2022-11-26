@@ -9,11 +9,9 @@ create_bo_document(conn, name, parent_folder)
 \arguments{
 \item{conn}{Connection reference}
 
+\item{name}{name of document}
+
 \item{parent_folder}{Numeric id of parent folder for document}
-
-\item{filepath}{Path to document (including filename)}
-
-\item{filename}{name of document}
 }
 \value{
 Response content

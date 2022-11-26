@@ -68,7 +68,6 @@ get_bo_report_data <- function(conn, document, report = '', skip=0) {
 #'
 #' @return tibble with data from report element
 #' @export
-#' @noRd
 get_bo_report_element_data <- function(conn, document, report, element) {
   logger::log_info("Getting report","{report}", "for document", "{document}", ";tget_bo_report_data 33")
   document_id = get_bo_item_id(document)
