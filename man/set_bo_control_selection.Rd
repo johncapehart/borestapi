@@ -20,11 +20,11 @@ set_bo_control_selection(
 
 \item{report}{Identifier of report for report level controls, blank otherwise}
 
+\item{control}{Identifier of the control}
+
 \item{selections}{Selected items}
 
 \item{all}{Select all items}
-
-\item{control_name}{Name of the control}
 }
 \value{
 Response content
