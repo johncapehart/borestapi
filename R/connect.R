@@ -11,11 +11,6 @@ setOldClass("httr2_request")
 setRefClass("request_reference_class", fields = list(request='httr2_request'))
 new_bo_request_reference <- setRefClass("request_reference_class", fields = list(request = "httr2_request"))
 
-get_home_path <- function() {
-  home_path <- path.expand('~')
-  return(home_path)
-}
-
 # connection validation ----------------------------------------------------------------
 
 #' Get user rights on the BO server

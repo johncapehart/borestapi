@@ -1,6 +1,16 @@
 #' @importFrom magrittr %<>% %>%
 #' @importFrom RSQLite dbConnect dbDisconnect dbExecute dbListTables dbReadTable dbWriteTable dbAppendTable
 
+get_home_path <- function() {
+  profile <- Sys.getenv('USERPROFILE')
+  if (!is_null_or_empty(profile)) {
+    home_path <- profile
+  } else {
+    home_path <- path.expand('~')
+  }
+  return(home_path)
+}
+
 # encryption ----------------------------------------------------------------
 
 get_salt <- function(x) {
@@ -8,12 +18,13 @@ get_salt <- function(x) {
 }
 
 init_rsa_keys <- function() {
-  if (!file.exists("~/.ssh/id_rsa")) {
-    logger::log_debug("Initializing RSA keys at '~/.ssh'", ';t init_rsa_keys line 11')
+  ssh_path <- file.path(get_home_path(), '.ssh')
+  if (!dir.exists(ssh_path)) {
+    dir.create(ssh_path)
+  }
+  if (!file.exists(file.path(ssh_path, "id_rsa"))) {
+    logger::log_debug("Initializing RSA keys at ssh_path", ';t init_rsa_keys line 11')
     key <- openssl::rsa_keygen()
-    if (!dir.exists('~/.ssh')) {
-      dir.create('~/.ssh')
-    }
     openssl::write_pem(key, "~/.ssh/id_rsa")
     openssl::write_ssh(key$pubkey, "~/.ssh/id_rsa.pub")
   }
@@ -40,7 +51,7 @@ get_database_path <- function() {
   if (!dir.exists(config_dir)) {
     dir.create(config_dir)
   }
-  parent_dir <- file.path(get_home_path(), '.config/borestapi')
+  parent_dir <- file.path(config_dir, 'borestapi')
   if (!dir.exists(parent_dir)) {
     dir.create(parent_dir)
   }
