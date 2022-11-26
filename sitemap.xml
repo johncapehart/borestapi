@@ -40,6 +40,12 @@
     <loc>https://johncapehart.github.io/borestapi/reference/close_bo_document.html</loc>
   </url>
   <url>
+    <loc>https://johncapehart.github.io/borestapi/reference/copy_bo_document.html</loc>
+  </url>
+  <url>
+    <loc>https://johncapehart.github.io/borestapi/reference/create_bo_document.html</loc>
+  </url>
+  <url>
     <loc>https://johncapehart.github.io/borestapi/reference/delete_bo_spreadsheet.html</loc>
   </url>
   <url>
@@ -53,6 +59,9 @@
   </url>
   <url>
     <loc>https://johncapehart.github.io/borestapi/reference/get_bo_data_provider_details.html</loc>
+  </url>
+  <url>
+    <loc>https://johncapehart.github.io/borestapi/reference/get_bo_data_provider_specification.html</loc>
   </url>
   <url>
     <loc>https://johncapehart.github.io/borestapi/reference/get_bo_document_details.html</loc>
@@ -76,10 +85,10 @@
     <loc>https://johncapehart.github.io/borestapi/reference/get_bo_spreadsheet_details.html</loc>
   </url>
   <url>
-    <loc>https://johncapehart.github.io/borestapi/reference/get_user_password.html</loc>
+    <loc>https://johncapehart.github.io/borestapi/reference/get_saved_items.html</loc>
   </url>
   <url>
-    <loc>https://johncapehart.github.io/borestapi/reference/get_user_rights.html</loc>
+    <loc>https://johncapehart.github.io/borestapi/reference/get_user_password.html</loc>
   </url>
   <url>
     <loc>https://johncapehart.github.io/borestapi/reference/index.html</loc>
@@ -98,6 +107,12 @@
   </url>
   <url>
     <loc>https://johncapehart.github.io/borestapi/reference/refresh_bo_data_provider.html</loc>
+  </url>
+  <url>
+    <loc>https://johncapehart.github.io/borestapi/reference/set_bo_control_selection.html</loc>
+  </url>
+  <url>
+    <loc>https://johncapehart.github.io/borestapi/reference/set_bo_data_provider_specification.html</loc>
   </url>
   <url>
     <loc>https://johncapehart.github.io/borestapi/reference/set_user_password.html</loc>
