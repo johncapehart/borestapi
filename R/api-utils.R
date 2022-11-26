@@ -51,7 +51,7 @@ append_query_conditions <- function(query, name = NULL, parent_folder = NULL, ki
   }
 
   needAnd = FALSE
-  if (hasArg("name") && !is.null(name) && stringr::str_length(name) > 0) {
+  if (!is_null_or_empty(name)) {
     if (grepl('%', name, fixed = TRUE)) {
       query <- paste0(query, " SI_NAME LIKE '", name, "'")
     } else {
@@ -59,16 +59,15 @@ append_query_conditions <- function(query, name = NULL, parent_folder = NULL, ki
     }
     needAnd = TRUE
   }
-  if (hasArg("parent_folder") && !is.null(parent_folder) && parent_folder > 0) {
-    query <-
-      paste0(query, addAnd(needAnd), " SI_PARENT_FOLDER=", parent_folder)
+  if (!is_null_or_empty(parent_folder)) {
+    query <- paste0(query, addAnd(needAnd), " SI_PARENT_FOLDER=", parent_folder)
     needAnd = TRUE
   }
-  if (hasArg("kind") && !is.null(kind) && stringr::str_length(kind) > 0) {
+  if (!is_null_or_empty(kind)) {
     query <- paste0(query, addAnd(needAnd), " SI_KIND='", kind, "'")
     needAnd = TRUE
   }
-  if (hasArg("owner") && !is.null(owner) && stringr::str_length(owner) > 0) {
+  if (!is_null_or_empty(owner)) {
     query <- paste0(query, addAnd(needAnd), " SI_OWNER='", owner, "'")
     needAnd = TRUE
   }
@@ -122,20 +121,10 @@ get_bo_item <- function(conn, name = NULL, parent_folder = NULL, kind = NULL, ow
   if (response$status_code==200) {
     results <- bind_bo_query_results_to_tibble(httr2::resp_body_json(response)$entries)
     if (nrow(results) > 1) {
-      results <- dplyr::distinct(results, SI_ID, .keep_all=TRUE)
+      results <- dplyr::distinct(results, `SI_ID`, .keep_all=TRUE)
     }
   }
   return(results)
-}
-
-paste_url <- function(...) {
-  x <- list(...)
-  n <- names(x)
-  if (length(n) > 0)
-    x <- Map(list, n, x) %>% unlist()
-  x <- as.list(x) %>% keep(stringr::str_length(.) > 0)
-  x %>% do.call(what = (function(...)
-    paste(..., sep = "/")))
 }
 
 quiet_is_numeric <- function(x) {

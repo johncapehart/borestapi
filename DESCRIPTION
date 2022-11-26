@@ -13,14 +13,12 @@ Description: An R interface to the SAP Business Objects REST API.
 License: MIT + file LICENSE
 Imports:
     base64enc,
-    cli,
     crayon,
-    digest,
+    curl,
     dplyr,
     glue,
     httr2,
     jsonlite,
-    lifecycle,
     logger,
     lubridate,
     magrittr,
@@ -32,8 +30,7 @@ Imports:
     RSQLite,
     stringr,
     tibble,
-    tidyr,
-    withr
+    tidyr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1

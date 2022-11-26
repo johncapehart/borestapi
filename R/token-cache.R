@@ -129,7 +129,7 @@ get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.g
         items %<>% dplyr::mutate(value = decrypt_object(base64enc::base64decode(`value`)))
       }
   } else {
-    items <- tibble::tibble(timestamp = double(0), usernamekey = character(0), serverkey = character(0), value = character(0))
+    items <- tibble::tibble(`timestamp` = double(0), `usernamekey` = character(0), `serverkey` = character(0), `value` = character(0))
   }
   close_database(db_conn)
   return(items)
@@ -168,7 +168,7 @@ remove_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.geten
 save_item <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), value, table_name = get_token_table_name()) {
   db_conn <- open_database()
   value <- base64enc::base64encode(encrypt_object(value))
-  new_values <- tibble::tibble(timestamp = lubridate::now(), usernamekey = username, serverkey = server, value)
+  new_values <- tibble::tibble(`timestamp` = lubridate::now(), `usernamekey` = username, `serverkey` = server, `value` = value)
   table <- get_table(db_conn, table_name)
   if (length(table) > 0) {
     dbAppendTable(db_conn, table_name, new_values)

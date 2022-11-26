@@ -1,4 +1,3 @@
-#' @importFrom methods hasArg new
 #' @importFrom httr2 request
 #' @importFrom utils head tail
 #' @include api-utils.R
@@ -63,7 +62,7 @@ check_bo_connection <- function(conn) {
   if (rlang::is_empty(conn)) {
     logger::log_error("Empty connection reference",";t check_bo_connection 83")
   }
-  if (is(conn,'request_reference_class')) {
+  if (methods::is(conn,'request_reference_class')) {
     if (check_bo_connection_state(conn$request)) {
       return(conn$request)
     } else {

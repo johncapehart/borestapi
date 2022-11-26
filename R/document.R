@@ -134,11 +134,6 @@ get_bo_document_details <- function(conn, document) {
   httr2::resp_body_json(response, simplifyVector = TRUE) %>% dplyr::bind_rows()
 }
 
-refresh_bo_data_provider <- function(conn, document_id, provider_id) {
-  request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = provider_id, parameters = '', method = 'PUT')
-  logger::log_info(paste("Refreshed data for", document_id, provider_id, ";trefresh_bo_data_provider line 170"))
-}
-
 #' Title
 #'
 #' @param conn Connection Reference
@@ -153,6 +148,11 @@ get_bo_data_provider_details <- function(conn, document, data_provider = '') {
   return(dp)
 }
 
+refresh_bo_data_provider0 <- function(conn, document_id, provider_id) {
+  request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = provider_id, parameters = '', method = 'PUT')
+  logger::log_info(paste("Refreshed data for", document_id, provider_id, ";trefresh_bo_data_provider line 170"))
+}
+
 #' Title
 #'
 #' @param conn Connection reference
@@ -161,12 +161,12 @@ get_bo_data_provider_details <- function(conn, document, data_provider = '') {
 #'
 #' @return Response content
 #' @export
-refresh_bo_document_data_provider <- function(conn, document, data_provider = NULL) {
+refresh_bo_data_provider <- function(conn, document, data_provider = NULL) {
   document_id <- get_bo_item_id(document)
   dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '') %>% bind_list()
   if (!is_null_or_empty(data_provider)) {
     dp %<>% dplyr::filter(`id` == data_provider)
   }
-  dp$id %>% sapply(function(x) refresh_bo_data_provider(conn, document_id, x))
+  dp$id %>% sapply(function(x) refresh_bo_data_provider0(conn, document_id, x))
 }
 
