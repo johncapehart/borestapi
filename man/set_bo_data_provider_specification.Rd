@@ -4,7 +4,7 @@
 \alias{set_bo_data_provider_specification}
 \title{Set the date range provider specification}
 \usage{
-set_bo_data_provider_specification(conn, document, dataprovider, specifiation)
+set_bo_data_provider_specification(conn, document, dataprovider, specification)
 }
 \arguments{
 \item{conn}{Connection reference}

@@ -80,7 +80,7 @@ get_bo_control_selection_set <- function(conn, document, report = '', control = 
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
 #' @param report Identifier of report for report level controls, blank otherwise
-#' @param control_name Name of the control
+#' @param control Identifier of the control
 #' @param selections Selected items
 #' @param all Select all items
 #'
@@ -134,10 +134,10 @@ get_bo_data_provider_specification <- function(conn, document, dataprovider) {
 #'
 #' @return NULL
 #' @export
-set_bo_data_provider_specification <- function(conn, document, dataprovider, specifiation) {
+set_bo_data_provider_specification <- function(conn, document, dataprovider, specification) {
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
   dp <- get_bo_data_provider_details(conn, document, data_provider = dataprovider)
   request_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dataprovider, specification='',
-                               accept = 'application/json', body = specifiation, content_type = 'text/xml', method = 'PUT')
+                               accept = 'application/json', body = specification, content_type = 'text/xml', method = 'PUT')
 }

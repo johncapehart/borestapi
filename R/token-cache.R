@@ -113,8 +113,11 @@ empty_row <- function() {
 
 #' Get items from table
 #'
-#' @param table_name
+#' @param table_name Name of the table in the database
+#' @param username Username key
+#' @param server Server key
 #'
+#' @noRd
 get_saved_items <- function(username = Sys.getenv('BO_USERNAME'), server = Sys.getenv('BO_SERVER'), table_name = get_token_table_name()) {
   db_conn <- open_database()
   table <- get_table(db_conn, table_name)
