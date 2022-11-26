@@ -55,6 +55,9 @@
     <loc>https://johncapehart.github.io/borestapi/reference/get_bo_control_selection.html</loc>
   </url>
   <url>
+    <loc>https://johncapehart.github.io/borestapi/reference/get_bo_control_selection_set.html</loc>
+  </url>
+  <url>
     <loc>https://johncapehart.github.io/borestapi/reference/get_bo_data_provider_data.html</loc>
   </url>
   <url>
@@ -77,6 +80,9 @@
   </url>
   <url>
     <loc>https://johncapehart.github.io/borestapi/reference/get_bo_report_details.html</loc>
+  </url>
+  <url>
+    <loc>https://johncapehart.github.io/borestapi/reference/get_bo_report_element_data.html</loc>
   </url>
   <url>
     <loc>https://johncapehart.github.io/borestapi/reference/get_bo_report_inputs.html</loc>
