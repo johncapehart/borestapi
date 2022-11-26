@@ -80,7 +80,11 @@ get_bo_control_selection_set <- function(conn, document, report = '', control = 
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
 #' @param report Identifier of report for report level controls, blank otherwise
+<<<<<<< HEAD
 #' @param control Identifier of the control
+=======
+#' @param control_name Name of the control
+>>>>>>> 0e901f710c7a4e4a0788f71e359e608a2136b1c8
 #' @param selections Selected items
 #' @param all Select all items
 #'
