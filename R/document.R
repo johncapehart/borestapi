@@ -64,8 +64,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
 #' Create a new webi document
 #'
 #' @param conn Connection reference
-#' @param filepath Path to document (including filename)
-#' @param filename name of document
+#' @param name name of document
 #' @param parent_folder Numeric id of parent folder for document
 #'
 #' @return Response content
@@ -155,7 +154,7 @@ refresh_bo_data_provider0 <- function(conn, document_id, provider_id) {
 #'
 #' @param conn Connection reference
 #' @param document Document as numeric id or tibble of properties
-#' @param dataSourceType Type of data source to refresh
+#' @param data_provider Identifier of the data provider
 #'
 #' @return Response content
 #' @export

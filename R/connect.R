@@ -156,8 +156,6 @@ get_new_request <- function(server, username) {
 #' # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME".
 #' # and password in the database
 #' conn <- open_bo_connection()
-#' # open a connection to a server using username and password
-#' conn <- open_bo_connection(Sys.getenv("BO_SERVER"), username = 'john.capehart', password=getPass())
 #' @export
 open_bo_connection <- function(server = Sys.getenv("BO_SERVER"),
                                username = Sys.getenv("BO_USERNAME"),

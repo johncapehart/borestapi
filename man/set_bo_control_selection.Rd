@@ -18,6 +18,8 @@ set_bo_control_selection(
 
 \item{document}{Document as numeric id or tibble of properties}
 
+\item{report}{Identifier of report for report level controls, blank otherwise}
+
 \item{selections}{Selected items}
 
 \item{all}{Select all items}

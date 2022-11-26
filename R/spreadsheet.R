@@ -103,6 +103,7 @@ upload_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = file
 
 #' @title Upload a dataframe
 #'
+#' @param conn Connection reference
 #' @param df Dataframe
 #' @param filename Name of uploaded file
 #' @param parent_folder Parent folder to upload file to
