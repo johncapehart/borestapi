@@ -27,7 +27,7 @@ get_bo_report_details <- function(conn, document, report = '') {
   if (!is_null_or_empty(report) && !quiet_is_numeric(report)) {
     report_name <- parse_bo_report_name(report)
     reports <- request_bo_raylight_endpoint(conn, documents = document_id, reports = '')
-    reports %<>%  dplyr::filter(name == report_name)
+    reports %<>%  dplyr::filter(`name` == report_name)
   } else {
     request_bo_raylight_endpoint(conn, documents = document_id, reports = report)
   }
@@ -74,11 +74,11 @@ get_bo_report_element_data <- function(conn, document, report, element) {
   document_id = get_bo_item_id(document)
   reports <- request_bo_raylight_endpoint(conn, documents = document_id, reports = '')
   reports <- reports %>%
-    dplyr::filter(id == report | name == report) %>%
+    dplyr::filter(`id` == report | `name` == report) %>%
     tail(1)
   report_id <- reports$id
   elements <- request_bo_raylight_endpoint(conn = conn, documents = document_id, reports = report_id, elements = '')
-  elements <- elements %>% dplyr::filter(id == element | name == element)
+  elements <- elements %>% dplyr::filter(`id` == element | `name` == element)
   elementId <- elements$id
   data <- request_bo_raylight_endpoint(conn, documents = document_id, reports = report_id, elements = elementId, dataset = '')
   metadata <- data$metadata$value

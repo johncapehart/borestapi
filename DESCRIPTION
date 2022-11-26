@@ -9,7 +9,7 @@ Description: An R interface to the SAP Business Objects REST API.
         Retrieve data from Business Object document report tabs.
         Upload Excel spreadsheets to Business Objects
         Retrieve data from a Busines Objects document data source
-        Set document filters and refresh document data
+        Set document filters and refresh document data.
 License: MIT + file LICENSE
 Imports:
     base64enc,

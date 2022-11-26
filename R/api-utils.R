@@ -166,20 +166,31 @@ bind_result <- function(result, stop_name = NULL) {
     bind_list()
 }
 
-return_bo_response_content <- function(response) {
-  if (response$headers[['content-type']] %>% stringr::str_detect('json')) {
-    result <- httr2::resp_body_json(response, simplifyVector = TRUE)
-    if (length(names(result)) == 1) {
-      result <- flatten_scalars(result)
-    } else {
-      result <- result %>% dplyr::bind_rows()
-    }
-    result
-  } else if (response$headers[['content-type']] %>% stringr::str_detect('text')) {
-    httr2::resp_body_string(response)
+resp_content_length <- function(response) {
+  if(httr2::resp_header_exists(response, 'Content-Length')) {
+    strtoi(httr2::resp_header(response, 'Content-Length'))
   } else {
-    # otherwise some kind of raw content
-    httr2::resp_body_raw(response)
+    length(response$body)
+  }
+}
+
+return_bo_response_content <- function(response) {
+  if(resp_content_length(response) > 0) {
+    type = response$headers[['Content-Type']]
+    if (stringr::str_detect(type, 'json')) {
+      result <- httr2::resp_body_json(response, simplifyVector = TRUE)
+      if (length(names(result)) == 1) {
+        result <- flatten_scalars(result)
+      } else {
+        result <- result %>% dplyr::bind_rows()
+      }
+      result
+    } else if (stringr::str_detect(type, 'text')) {
+      httr2::resp_body_string(response)
+    } else {
+      # otherwise some kind of raw content
+      httr2::resp_body_raw(response)
+    }
   }
 }
 
@@ -206,7 +217,7 @@ request_bo_raylight_endpoint <- function(conn, ..., query, accept=NULL, body = N
       ref$request %<>% httr2::req_body_raw(body) %>%
         httr2::req_headers('Content-Type' = content_type)
     }
-    ref$request %<>% httr2::req_method(method='PUT')
+    #ref$request %<>% httr2::req_method(method='PUT')
   }
   if (!is.null(method)) {
     ref$request %<>% httr2::req_method(method=method)

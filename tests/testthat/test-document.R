@@ -49,9 +49,15 @@ test_that(paste("Copy document works"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
   d1 <- get_bo_document_details(conn, document)
-  result <- copy_bo_document(conn, document, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), paste(d1$name,'Copy'))
+  result <- copy_bo_document(conn, document, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), paste(d1$name,'Copy Test'))
   d2 <- get_bo_document_details(conn, result$success$id)
   expect_match(d2$name, paste(d1$name,'Copy'))
+})
+
+test_that(paste("Create document works"), {
+  conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
+  result <- create_bo_document(conn, paste(Sys.getenv('BO_TEST_DOCUMENT_NAME'), "Create Test", lubridate::now()), Sys.getenv('BO_TEST_FOLDER_ID'))
+  expect_match(result$success$message, "success")
 })
 
 test_that(paste("Delete document works"), {

@@ -61,7 +61,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
   }
 }
 
-#' Upload a new webi document
+#' Create a new webi document
 #'
 #' @param conn Connection reference
 #' @param filepath Path to document (including filename)
@@ -71,38 +71,13 @@ close_bo_document <- function(conn, document, save = FALSE) {
 #' @return Response content
 #' @export
 #' @noRd
-post_bo_document <- function(conn, filename, parent_folder, filepath = filename) {
+create_bo_document <- function(conn, name, parent_folder) {
   request <- check_bo_connection(conn)
-  request %<>% httr2::req_body_file(path=filepath) %>% httr2::req_headers("Accept" = "*/*",
-    "Accept-Encoding" = "gzip, deflate",
-    "Content-Type" = "multipart/form-data"
-  ) %>% httr2::req_url_path_append("infostore/folder", parent_folder, "/file")
+  request %<>% httr2::req_url_path_append("raylight/v1/documents") %>%
+    httr2::req_body_json(list('document'=list('name'=name, 'folderId' = strtoi(parent_folder))))
   response <- httr2::req_perform(request)
-  report_request_result(request, response, paste(";POST", filepath,filename), "post_bo_document", 83)
-  httr2::resp_body_json(request)
-}
-
-#' Upload an existing BO Webi document
-#'
-#' @param conn Connection reference
-#' @param filepath Path to document (including filename)
-#' @param filename name of document
-#' @param document_id Numeric id of Webi document
-#'
-#' @return Response content
-#' @export
-#' @noRd
-put_bo_document <- function(conn, filepath, filename, document_id) {
-  request <- check_bo_connection(conn)
-  request %<>% httr2::req_url_path_append("infostore/folder", parent_folder, "file") %>%
-    httr2::req_body_file(path=filepath) %>%
-    httr2::req_headers("Accept" = "*/*",
-      "Accept-Encoding" = "gzip, deflate",
-      "Content-Type" = "multipart/form-data"
-    ) %>%
-    httr2::req_method('PUT')
-  response <- httr2::req_perform(request)
-  report_request_result(request, response, paste(";PUT", filepath,filename,document_id), "put_bo_document", 94)
+  report_request_result(request, response, paste("Created document", name, ";;t create_bo_document line 78"))
+  httr2::resp_body_json(response)
 }
 
 #' Copy a Webi document
@@ -175,7 +150,6 @@ refresh_bo_data_provider <- function(conn, document_id, provider_id) {
 get_bo_data_provider_details <- function(conn, document, data_provider = '') {
   document_id <- get_bo_item_id(document)
   dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = data_provider)
-  dp %<>% bind_list()
   return(dp)
 }
 
@@ -191,7 +165,7 @@ refresh_bo_document_data_provider <- function(conn, document, data_provider = NU
   document_id <- get_bo_item_id(document)
   dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '') %>% bind_list()
   if (!is_null_or_empty(data_provider)) {
-    dp %<>% dplyr::filter(id == data_provider)
+    dp %<>% dplyr::filter(`id` == data_provider)
   }
   dp$id %>% sapply(function(x) refresh_bo_data_provider(conn, document_id, x))
 }

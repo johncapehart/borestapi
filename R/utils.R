@@ -81,21 +81,26 @@ split_message<-function(msg, level) {
   msg3
 }
 
+# https://www.r-bloggers.com/2013/04/package-wide-variablescache-in-r-packages/
+cacheEnv <- new.env()
+
 init_log <- function() {
-  console_layout <- logger::layout_glue_generator(
+  if (!exists('logger_ready', envir=cacheEnv) || !get('logger_ready', envir=cacheEnv)) {
+    console_layout <- logger::layout_glue_generator(
     format = paste(
       '{crayon::bold(my_log_colorize(level, levelr))}',
       '{crayon::make_style("gray40")(format(time, "[%Y-%m-%d %H:%M:%S]")
     )}',
       '{split_message(msg, levelr)}'))
 
-  logger::log_layout(console_layout)
-  threshold0 <- Sys.getenv("BO_LOGGING_THRESHOLD")
-  if (is_null_or_empty(threshold0)) {
-    threshold0 <- logger::INFO
+    logger::log_layout(console_layout)
+    threshold0 <- Sys.getenv("BO_LOGGING_THRESHOLD")
+    if (is_null_or_empty(threshold0)) {
+      threshold0 <- logger::INFO
+    }
+    logger::log_threshold(threshold0)
+    assign('logger_ready', TRUE, envir=cacheEnv)
   }
-  logger::log_threshold(threshold0)
-  logger_ready <<- TRUE
 }
 
 

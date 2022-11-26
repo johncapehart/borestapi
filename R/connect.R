@@ -63,7 +63,7 @@ check_bo_connection <- function(conn) {
   if (rlang::is_empty(conn)) {
     logger::log_error("Empty connection reference",";t check_bo_connection 83")
   }
-  if (class(conn) == "request_reference_class") {
+  if (is(conn,'request_reference_class')) {
     if (check_bo_connection_state(conn$request)) {
       return(conn$request)
     } else {
@@ -212,8 +212,9 @@ reconnect_bo_connection <- function(conn) {
 #' @export
 close_bo_connection <- function(conn) {
   request <- check_bo_connection(conn)
-  url <- paste0(conn$request$url, "/logoff")
-  response <- POST(url = url, request = request)
+  request %<>% httr2::req_url_path_append("logoff") %>%
+    httr2::req_method('POST')
+  response <- httr2::req_perform(request)
   report_request_result(request, response, ";Disconnect", "logOffBOSession line 129")
-  conn
+  return_bo_response_content(response)
 }

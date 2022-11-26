@@ -25,7 +25,7 @@ get_bo_control_details <- function(conn, document, report = NULL, control = '', 
     result <- request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = '', query = query)
   }
   if (!is_null_or_empty(control)) {
-    result <- result %>% dplyr::filter(name == control | id == control)
+    result <- result %>% dplyr::filter(`name` == control | `id` == control)
   }
   result
 }
@@ -94,10 +94,10 @@ set_bo_control_selection <- function(conn, document, report = NULL, control, sel
     body <- list('selection'=list(value=selections))
   }
   if (is_null_or_empty(report)) {
-    request_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection='', body = body)
+    request_bo_raylight_endpoint(conn, documents = document_id, inputcontrols = inputcontrol$id, selection='', body = body, method = 'PUT')
   } else {
     report0 <- get_bo_report_details(conn, document, report)
-    request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = inputcontrol$id, selection='', body = body)
+    request_bo_raylight_endpoint(conn, documents = document_id, reports = report0$id, inputcontrols = inputcontrol$id, selection='', body = body, method = 'PUT')
   }
 }
 
@@ -139,5 +139,6 @@ set_bo_data_provider_specification <- function(conn, document, dataprovider, spe
   request <- check_bo_connection(conn)
   document_id <- get_bo_item_id(document)
   dp <- get_bo_data_provider_details(conn, document, data_provider = dataprovider)
-  request_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dataprovider, specification='', accept = 'application/json', body = specifiation, content_type = 'text/xml')
+  request_bo_raylight_endpoint(conn, documents=document_id, dataproviders=dataprovider, specification='',
+                               accept = 'application/json', body = specifiation, content_type = 'text/xml', method = 'PUT')
 }

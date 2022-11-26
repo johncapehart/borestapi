@@ -111,10 +111,10 @@ upload_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = file
 #' @return NA
 #' @export
 upload_df <- function(conn, df,filename, parent_folder, sheetname = 'Sheet 1') {
-  wb2 <- createWorkbook()
-  sheet <- wb2 %>% addWorksheet(sheetname)
-  writeDataTable(wb2, sheet, df)
-  saveWorkbook(wb2, filename, overwrite = TRUE)
+  wb2 <- openxlsx::createWorkbook()
+  sheet <- wb2 %>% openxlsx::addWorksheet(sheetname)
+  openxlsx::writeDataTable(wb2, sheet, df)
+  openxlsx::saveWorkbook(wb2, filename, overwrite = TRUE)
   upload_bo_spreadsheet(conn, filename, parent_folder = parent_folder)
   file.remove(filename)
 }
