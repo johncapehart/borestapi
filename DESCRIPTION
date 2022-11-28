@@ -11,7 +11,7 @@ Description: An R interface to the SAP Business Objects REST API.
         Retrieve data from a Busines Objects document data source
         Set document filters and refresh document data.
 License: MIT + file LICENSE
-Imports:
+Imports: 
     base64enc,
     crayon,
     curl,
@@ -34,7 +34,7 @@ Imports:
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
-Collate:
+Collate: 
     'api-utils.R'
     'borestapi-package.R'
     'compat-purrr.R'
@@ -43,16 +43,19 @@ Collate:
     'document.R'
     'globals.R'
     'report.R'
+    'skip_custom.R'
     'spreadsheet.R'
     'token-cache.R'
     'utils.R'
     'zzz.R'
-Suggests:
+Suggests: 
     getPass,
+    httptest2,
     knitr,
     openxlsx,
     qpdf,
     rmarkdown,
+    testdown,
     testthat (>= 3.0.0),
     timechange,
     tinytex,
