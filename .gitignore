@@ -11,3 +11,5 @@ test2.R
 sbo43_webi_restws_dg_en.pdf
 inst/doc
 docs
+renv.lock
+renv/
