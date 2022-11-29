@@ -21,7 +21,11 @@ new_bo_request_reference <- setRefClass("request_reference_class", fields = list
 #' @noRd
 get_user_rights <- function(request) {
   request %<>% httr2::req_url_path_append('raylight/v1/session/rights')
+  # browser()
+  log_warn("Getting rights from BO server")
   response <- httr2::req_perform(request)
+  log_warn(paste("Got rights from BO server"), httr2::resp_status(response), length(response$body))
+
   if (httr2::resp_status(response) == 200) {
     return(httr2::resp_body_json(response))
   }
@@ -46,6 +50,7 @@ try_token <- function(conn, server, token) {
   result <- tryCatch({
       # this sets the token in the mutable connection
       request <- conn$request %>% httr2::req_headers("X-SAP-LogonToken" = token)
+      # browser()
       if (check_bo_connection_state(request)) {
         conn$request %<>% httr2::req_headers("X-SAP-LogonToken" = token)
         TRUE
@@ -82,7 +87,7 @@ check_bo_connection <- function(conn) {
 #' @return TRUE if token found; FALSE otherwise
 #' @noRd
 get_cached_token <- function(conn, server, username) {
-  tokens <- get_saved_items(username, server)$value # get matching tokens
+  tokens <- get_tokens(username, server)$value
   if (!is_empty(tokens) && length(tokens) > 0) {
     for (i in 1:length(tokens)) {
       token <- tokens[i]
@@ -91,9 +96,13 @@ get_cached_token <- function(conn, server, username) {
         log_debug(paste0("{token}"))
         return(TRUE)
       } else {
+        if (getOption('bo_no_new_tokens', default=FALSE)) {
+          log_warn(paste("Option bo_no_new_tokens is set {get_token_count()} {get_database_path()}"))
+          stop("Option bo_no_new_tokens is set")
+        }
         log_with_separator("Removing token for ", paste(server, username), separator='-', width=120)
         log_debug(paste0("{token}"))
-        remove_item(username, server, table_name = get_token_table_name())
+        remove_token(username, server)
       }
     }
   }
@@ -101,7 +110,11 @@ get_cached_token <- function(conn, server, username) {
 }
 
 get_new_token <- function(conn, server, username, password = NULL) {
-  #browser()
+  if (getOption('bo_no_new_tokens', default=FALSE)) {
+    log_warn(paste("Option bo_no_new_tokens is set {get_token_count()} {get_database_path()}"))
+    # browser()
+    stop("Option bo_no_new_tokens is set")
+  }
   body <- list(
     "clienttype" = "my_BI_Application",
     "username" = username,
@@ -112,16 +125,19 @@ get_new_token <- function(conn, server, username, password = NULL) {
   request %<>% httr2::req_headers('X-SAP-LogonToken'='')
   request %<>% httr2::req_url_path_append( 'v1/logon/long') # append longon endpoint to url
   request %<>% httr2::req_body_json(body)
+  request %<>% httr2::req_error(is_error = function(resp) FALSE)
+  ## browser()
   response <- httr2::req_perform(request)
-  report_request_result(conn$request, response, "New connection", "open_bo_connection line 146")
+  report_request_result(request, response, "New connection")
+  if (response$status_code != 200) {
+    return(FALSE)
+  }
   token <- httr2::resp_body_json(response)$logontoken
   if (!is.null(token) && stringr::str_length(token) > 0) {
     conn$request %<>% httr2::req_headers("X-SAP-LogonToken" = token)
-    save_item(username, server, token, table_name = get_token_table_name())
+    save_token(username, server, token)
     log_with_separator("New token for ", paste(server, username), separator='+', width=120)
     log_debug(paste0("{token}"))
-  } else {
-    stop(paste("Logon to ", server, "as", username, "failed"))
   }
   return(TRUE)
 }

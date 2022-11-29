@@ -1,6 +1,12 @@
 init_options <- function() {
 }
 
+in_httptest2 <- function() {
+  call <- head(sys.calls(), -1) %>% keep(~ stringr::str_detect(as.character(.x)[[1]], 'with_mock_dir'))
+  # print(call)
+  return(!is.null(call) && length(call) > 0)
+}
+
 upload_bo_mtcars <- function(conn, n = NULL) {
   require(openxlsx, quietly=TRUE)
   df <- mtcars
@@ -10,7 +16,7 @@ upload_bo_mtcars <- function(conn, n = NULL) {
   # create a date column for date filtering test
   min = paste0(format(Sys.Date(), '%Y'), '2022-01-01')
   max = paste0(format(Sys.Date(), '%Y'), '2022-12-31')
-  df$date = seq(as.Date('2022-01-01'), as.Date('2022-12-31'), by = "day")[0:n]
+  df$date = seq(as.Date('2022-01-01'), as.Date('2022-12-31'), by = "day")[0:nrow(df)]
   # create column for rownames
   df <- tibble::rownames_to_column(df, "model")
   # slice the set

@@ -10,11 +10,19 @@ report_request_result <- function(request, response, ...) {
   inputs <- list(...)
   message1 <- paste(head(inputs, 1), collapse = " ")
   message2 <- paste(tail(inputs, -1), collapse = " ")
-  # if(is.na(message1)||message1=='NA') #browser()()
+  # if(is_null_or_empty(message1) ## browser()
   if (response$status_code == 200) {
     logger::log_info(paste(message1, "succeeded", ";d", message2, "{response$url}"))
   } else {
-    logger::log_error(paste(message1, "failed", response$status_code, ";d", message2,  "{response$url}", request$verb, "{content(response, as='text', encoding='UTF-8')}"))
+    # # browser();
+    message <- paste(message1, "failed")
+    content <- return_bo_response_content(response)
+    if (is.list(content)) {
+      message <- paste(message, content$message)
+    }
+    logger::log_error(paste(message, ';d', response$status_code,
+      message2, "{response$url}", request$verb,
+    ))
     # throw()
   }
 }
@@ -137,7 +145,7 @@ quiet_is_numeric <- function(x) {
 
 flatten_scalars <- function(list, stop_name = NULL) {
   # recursiviely unwrap lists with one named item
-  while (length(names(list)) == 1 && (is_null(stop_name) || !stop_name %in% names(list)))
+  while (length(names(list)) == 1 && (is.null(stop_name) || !stop_name %in% names(list)))
     list %<>% purrr::pluck(names(list))
   list
 }

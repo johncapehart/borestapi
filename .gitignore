@@ -9,7 +9,6 @@ test.R
 test2.R
 .Rd2*
 sbo43_webi_restws_dg_en.pdf
-inst/doc
 docs
 renv.lock
 renv/
