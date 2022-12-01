@@ -21,7 +21,7 @@ report_request_result <- function(request, response, ...) {
       message <- paste(message, content$message)
     }
     logger::log_error(paste(message, ';d', response$status_code,
-      message2, "{response$url}", request$verb,
+      message2, "{response$url}", request$verb
     ))
     # throw()
   }
@@ -148,19 +148,6 @@ flatten_scalars <- function(list, stop_name = NULL) {
   while (length(names(list)) == 1 && (is.null(stop_name) || !stop_name %in% names(list)))
     list %<>% purrr::pluck(names(list))
   list
-}
-
-bind_list <- function(list) {
-  if (length(names(list)) > 1) {
-    list %>% dplyr::bind_rows()
-  } else {
-    list %>% purrr::map(purrr::flatten_dfr) %>% dplyr::bind_rows()
-  }
-}
-
-bind_result <- function(result, stop_name = NULL) {
-  result %<>% flatten_scalars(stop_name) %>%
-    bind_list()
 }
 
 resp_content_length <- function(response) {
