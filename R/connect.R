@@ -63,6 +63,14 @@ try_token <- function(conn, server, token) {
   return(result)
 }
 
+#' Title
+#'
+#' @param conn
+#'
+#' @return Request object if connection is working or NULL
+#'
+#' @export
+#' @noRd
 check_bo_connection <- function(conn) {
   if (rlang::is_empty(conn)) {
     logger::log_error("Empty connection reference",";t check_bo_connection 83")
@@ -150,7 +158,6 @@ get_new_request <- function(server, username) {
   # set request headers
   conn$request <- httr2::request(base_url) %>%
     httr2::req_headers("Accept" = "application/json") %>%
-    httr2::req_headers("Content-Type" = "application/json") %>%
     httr2::req_headers("Host" = server) %>%
     httr2::req_headers("User" = username) %>%
     httr2::req_options(ssl_verifypeer = 0)
@@ -158,12 +165,14 @@ get_new_request <- function(server, username) {
   conn
 }
 
-#' Open a connection to a BO server. You can keep parameters in environment variables
+#' Open a connection to a BO server.
+#'
+#' Defaults can be set in environment variables
 #'
 #' @param server Server to connect to "server:port" (optional)
-#' Defaults BO_SERVER environment variable
-#' @param username (optional) Defaults to "BO_USERNAME environment variable
-#' @param password (optional)
+#' Defaults 'BO_SERVER' environment variable
+#' @param username (optional) Defaults to 'BO_USERNAME' environment variable
+#' @param password (optional) Defaults to password previously saved for server username combination
 #' @param save_password Save the password encrypted in the database.
 #' Saving password is required for automatic reconnection on token expiration
 #'
