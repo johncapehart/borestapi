@@ -21,12 +21,19 @@ function (request_or_response) {
     redact_headers("X-SAP-LogonToken") %>%
     redact_headers("Host") %>%
     redact_headers("User") %>%
-    gsub_response("https\\://.+/biprws/", "") %>%
+    gsub_response("https\\://.+/biprws/", "") %>% # remove beginning of url to shorten paths
     redact_json_field('logontoken') %>%
     redact_json_field('SI_OWNER') %>%
     redact_json_field('SI_NAME') %>%
+    redact_json_field('ownerid') %>%
     redact_list_field('username') %>%
-    redact_list_field('password')
+    redact_list_field('password') %>%
+
+    gsub_response(Sys.getenv('BO_TEST_USER'), 'REDACTED') %>% # remove test user name
+    gsub_response(stringr::str_replace(Sys.getenv('BO_TEST_SERVER'), ':.+$', ''), 'REDACTED') %>% # remove test BO server name
+    gsub_response(Sys.info()['nodename'], 'REDACTED') %>% # remove host name
+    gsub_response(Sys.getenv('BO_TEST_REDACTION_LIST'), 'REDACTED') # remove based on match in environment variable
+
   # url <- httptest2::build_mock_url(result)
   log_warn(paste("Redacting request", request_or_response$url))
   # browser()
