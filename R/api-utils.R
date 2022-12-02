@@ -79,6 +79,10 @@ append_query_conditions <- function(query, name = NULL, parent_folder = NULL, ki
     query <- paste0(query, addAnd(needAnd), " SI_OWNER='", owner, "'")
     needAnd = TRUE
   }
+  if (!is_null_or_empty(id)) {
+    query <- paste0(query, " SI_ID = ", id)
+    needAnd = TRUE
+  }
   query
 }
 
