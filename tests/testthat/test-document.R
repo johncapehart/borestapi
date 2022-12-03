@@ -32,41 +32,50 @@ test_that(paste("Document", Sys.getenv('BO_TEST_DOCUMENT_NAME'), "refreshes"), {
   d1 <- get_bo_document_details(conn, document)
   dp1 <- get_bo_data_provider_details(conn, document,  Sys.getenv('BO_TEST_DATA_SOURCE_ID'))
   df1 <- get_bo_data_provider_data(conn, document, data_provider = dp1$id)
-  upload_bo_mtcars(conn, 10)
+  upload_bo_mtcars(conn, filename = Sys.getenv('BO_TEST_EXCEL_FILE_NAME'), 10)
   refresh_bo_data_provider(conn, document=document, data_provider = dp1$id)
   close_bo_document(conn, document, save= TRUE)
+  Sys.sleep(1)
   d2 <- get_bo_document_details(conn, document)
   df2 <- get_bo_data_provider_data(conn, document, data_provider = dp1$id)
   expect_equal(ignore_attr = TRUE, nrow(df2), 10)
-  upload_bo_mtcars(conn)
+  upload_bo_mtcars(conn, filename = Sys.getenv('BO_TEST_EXCEL_FILE_NAME'))
   refresh_bo_data_provider(conn, document=document, data_provider = dp1$id)
   close_bo_document(conn, document, save= TRUE)
+  Sys.sleep(1)
   d3 <- get_bo_document_details(conn, document)
   df3 <- get_bo_data_provider_data(conn, document, data_provider = dp1$id)
   expect_equal(ignore_attr = TRUE, nrow(df3), 32)
   expect_gt(nrow(df3), nrow(df2))
-  # updated propety has high latency so not accurate for test
-  if (0) {
-    u1 <- lubridate::parse_date_time(d1$updated, '%m, %d %Y %I:%M %p')
-    u3 <- lubridate::parse_date_time(d3$updated, '%m, %d %Y %I:%M %p')
-    logger::log_warn(paste('********************************', u1, u3))
-    expect_gt(u3, u1)
-  }
+  # updated property has high latency so not accurate for test
+  # u1 <- lubridate::parse_date_time(d1$updated, '%m, %d %Y %I:%M %p')
+  # u3 <- lubridate::parse_date_time(d3$updated, '%m, %d %Y %I:%M %p')
+  # _xpect_gt(u3, u1) # mangle name to remove from testdown report
 })
 
 test_that(paste("Copy document works"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
-  d1 <- get_bo_document_details(conn, document)
-  result <- copy_bo_document(conn, document, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), paste(d1$name,'Copy Test'))
-  d2 <- get_bo_document_details(conn, result$success$id)
-  expect_match(d2$name, paste(d1$name,'Copy'))
+  name <- paste(Sys.getenv('BO_TEST_DOCUMENT_NAME'), "Copy Test")
+  existing_document <- get_bo_item(conn, name, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+  if (nrow(existing_document) == 0) {
+    result <- copy_bo_document(conn, document, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), name)
+    expect_true(result$success$id > 0)
+  } else {
+    skip('Copy already exists')
+  }
 })
 
 test_that(paste("Create document works"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
-  result <- create_bo_document(conn, paste(Sys.getenv('BO_TEST_DOCUMENT_NAME'), "Create Test"), Sys.getenv('BO_TEST_FOLDER_ID'))
-  expect_match(result$success$message, "(success|reuşită|identificator)")
+  name <- paste(Sys.getenv('BO_TEST_DOCUMENT_NAME'), "Create Test")
+  existing_document <- get_bo_item(conn, name, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'))
+  if (nrow(existing_document) == 0) {
+    result <- create_bo_document(conn, name, Sys.getenv('BO_TEST_FOLDER_ID'))
+    expect_true(result$success$id > 0)
+  } else {
+    skip('Document already exists')
+  }
 })
 
 test_that(paste("Delete document works"), {

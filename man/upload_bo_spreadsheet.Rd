@@ -2,9 +2,15 @@
 % Please edit documentation in R/spreadsheet.R
 \name{upload_bo_spreadsheet}
 \alias{upload_bo_spreadsheet}
-\title{Title}
+\title{Upload a spreadsheet}
 \usage{
-upload_bo_spreadsheet(conn, filename, parent_folder, filepath = filename)
+upload_bo_spreadsheet(
+  conn,
+  filename,
+  parent_folder,
+  filepath = filename,
+  type = NULL
+)
 }
 \arguments{
 \item{conn}{Connection reference}
@@ -19,5 +25,5 @@ upload_bo_spreadsheet(conn, filename, parent_folder, filepath = filename)
 List of properties for spreadsheet
 }
 \description{
-Title
+Upload a spreadsheet
 }

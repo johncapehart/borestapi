@@ -59,7 +59,8 @@ Suggests:
     testthat (>= 3.0.0),
     timechange,
     tinytex,
-    tools
+    tools,
+    withr
 Config/testthat/edition: 3
 Config/testthat/start-first: *utils, *cache, document, report
 VignetteBuilder: knitr

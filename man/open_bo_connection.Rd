@@ -2,7 +2,7 @@
 % Please edit documentation in R/connect.R
 \name{open_bo_connection}
 \alias{open_bo_connection}
-\title{Open a connection to a BO server. You can keep parameters in environment variables}
+\title{Open a connection to a BO server.}
 \usage{
 open_bo_connection(
   server = Sys.getenv("BO_SERVER"),
@@ -13,11 +13,11 @@ open_bo_connection(
 }
 \arguments{
 \item{server}{Server to connect to "server:port" (optional)
-Defaults BO_SERVER environment variable}
+Defaults 'BO_SERVER' environment variable}
 
-\item{username}{(optional) Defaults to "BO_USERNAME environment variable}
+\item{username}{(optional) Defaults to 'BO_USERNAME' environment variable}
 
-\item{password}{(optional)}
+\item{password}{(optional) Defaults to password previously saved for server username combination}
 
 \item{save_password}{Save the password encrypted in the database.
 Saving password is required for automatic reconnection on token expiration}
@@ -26,7 +26,7 @@ Saving password is required for automatic reconnection on token expiration}
 Connection reference
 }
 \description{
-Open a connection to a BO server. You can keep parameters in environment variables
+Defaults can be set in environment variables
 }
 \examples{
 # open a connection to the server in environment variable "BO_SERVER" using user in "BO_USERNAME".

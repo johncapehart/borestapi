@@ -7,6 +7,11 @@
 #' @param parent_folder Numeric id of the folder
 #' @param filepath Path to spreadsheet file (including file name)
 #' @param format HTTP body format to use
+#'
+#' @returns Response details
+#'
+#' @export
+#' @noRd
 post_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = filename, format = 'json', type = NULL) {
   request <- check_bo_connection(conn)
   if (is.null(type)) {
@@ -30,6 +35,10 @@ post_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = filena
 #' @param filename Name for spreasheet file
 #' @param sheet_id Numeric id of spreadsheet document
 #' @param filepath Path to spreadsheet file (including file name)
+#'
+#' @returns Response details
+#'
+#' @export
 #' @noRd
 put_bo_spreadsheet <- function(conn, filename, sheet_id, filepath = filename, type = NULL) {
   request <- check_bo_connection(conn)
@@ -53,11 +62,10 @@ put_bo_spreadsheet <- function(conn, filename, sheet_id, filepath = filename, ty
 #' @param parent_folder Numeric id of the folder
 #'
 #' @return List of properties
-#' @noRd
+#' @export
 get_bo_spreadsheet_details <- function(conn, filename, parent_folder) {
   request <- check_bo_connection(conn)
   sheet <- get_bo_item(conn, filename, parent_folder = parent_folder)
-
   if (nrow(sheet)) {
     request %<>% httr2::req_url_path_append("raylight", "v1", "spreadsheets", sheet$SI_ID)
     response <- httr2::req_perform(request)
@@ -75,6 +83,7 @@ get_bo_spreadsheet_details <- function(conn, filename, parent_folder) {
 #'
 #' @return Response content
 #' @export
+#' @noRd
 delete_bo_spreadsheet <- function(conn, filename, parent_folder) {
   sheet <- get_bo_spreadsheet_details(conn, filename, parent_folder)
   if (nrow(sheet)) {

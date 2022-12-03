@@ -4,11 +4,14 @@
 .Rdata
 .httr-oauth
 .DS_Store
-*.xlsx
-test.R
-test2.R
-.Rd2*
-sbo43_webi_restws_dg_en.pdf
-docs
+docs/
 renv.lock
 renv/
+*.xlsx
+*.xls
+*.csv
+*.txt
+test*.R
+.Rd2*
+sbo43_webi_restws_dg_en.pdf
+Lorem ipsum.pdf
