@@ -86,6 +86,15 @@ append_query_conditions <- function(query, name = NULL, parent_folder = NULL, ki
   query
 }
 
+
+bind_list <- function(list) {
+  if (length(names(list)) > 1) {
+    list %>% dplyr::bind_rows()
+  } else {
+    list %>% purrr::map(purrr::flatten_dfr) %>% dplyr::bind_rows()
+  }
+}
+
 bind_bo_query_results_to_tibble <- function(entries) {
   items <- entries %>%
     lapply(function(x) {
