@@ -22,9 +22,9 @@ new_bo_request_reference <- setRefClass("request_reference_class", fields = list
 get_user_rights <- function(request) {
   request %<>% httr2::req_url_path_append('raylight/v1/session/rights')
   # browser()
-  log_warn("Getting rights from BO server")
+  log_trace("Getting rights from BO server")
   response <- httr2::req_perform(request)
-  log_warn(paste("Got rights from BO server"), httr2::resp_status(response), length(response$body))
+  log_trace(paste("Got rights from BO server"), httr2::resp_status(response), length(response$body))
 
   if (httr2::resp_status(response) == 200) {
     return(httr2::resp_body_json(response))

@@ -14,7 +14,7 @@ get_bo_report_details(conn, document, report = "")
 \item{report}{Name of report tab in document}
 }
 \value{
-tibbe of report details
+tibble of report details
 }
 \description{
 Get report details from document

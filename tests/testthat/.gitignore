@@ -1,2 +1,5 @@
 tests
 mock
+*.csv
+*.txt
+*.xls*

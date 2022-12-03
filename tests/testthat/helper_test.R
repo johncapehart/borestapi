@@ -7,7 +7,7 @@ in_httptest2 <- function() {
   return(!is.null(call) && length(call) > 0)
 }
 
-upload_bo_mtcars <- function(conn, n = NULL, suffix = 1) {
+upload_bo_mtcars <- function(conn, filename, n = NULL, suffix = 1) {
   df <- mtcars
   if (is.null(n)) {
     n <- nrow(df)
@@ -20,9 +20,8 @@ upload_bo_mtcars <- function(conn, n = NULL, suffix = 1) {
   df <- tibble::rownames_to_column(df, "model")
   # slice the set
   df <- head(df, n)
-  filename <- paste(Sys.getenv('BO_TEST_EXCEL_FILE_NAME'), suffix)
   folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  upload_df(conn, df, filename, folder_id, 'Cars')
+  upload_bo_dataframe(conn, df, filename, folder_id, sheetname = 'Cars')
 }
 
 #' Generate httptest2 mock files
@@ -35,13 +34,13 @@ upload_bo_mtcars <- function(conn, n = NULL, suffix = 1) {
 #' }
 #' @noRd
 generate_mocks <- function() {
-  library(httptest2)
+  require(httptest2)
   devtools::load_all()
   withr::local_dir(file.path(Sys.getenv('RENV_PROJECT'), 'tests/testthat'))
   logger::log_threshold(WARN)
   # remove mock directory
   unlink('mock', recursive = TRUE)
-  with_mock_dir('mock',{
+  httptest2::with_mock_dir('mock',{
     clear_all_tokens()# force new token
     local_options('bo_no_new_tokens'=FALSE) #nale new token
     conn<-open_bo_connection() # force a login with a new token

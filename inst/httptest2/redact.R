@@ -4,7 +4,7 @@ function (request_or_response) {
   redact_json_field <- function(request_or_response, field) {
     pattern <- paste0('"', field, '":"[^"]*"')
     redaction <- paste0('"', field, '":"REDACTED"')
-    request_or_response %>% gsub_response(pattern, redaction)
+    request_or_response %>% gsub_response(pattern, redaction, ignore.case = TRUE)
   }
   # redact list field from request body
   redact_list_field <- function(request_or_response, field) {
@@ -27,15 +27,16 @@ function (request_or_response) {
     redact_json_field('SI_NAME') %>%
     redact_json_field('ownerid') %>%
     redact_list_field('username') %>%
-    redact_list_field('password') %>%
+    redact_list_field('password')
 
-    gsub_response(Sys.getenv('BO_TEST_USER'), 'REDACTED') %>% # remove test user name
-    gsub_response(stringr::str_replace(Sys.getenv('BO_TEST_SERVER'), ':.+$', ''), 'REDACTED') %>% # remove test BO server name
-    gsub_response(Sys.info()['nodename'], 'REDACTED') %>% # remove host name
-    gsub_response(Sys.getenv('BO_TEST_REDACTION_LIST'), 'REDACTED') # remove based on match in environment variable
+  result %<>% gsub_response(Sys.getenv('BO_TEST_USERNAME'), 'REDACTED', ignore.case = TRUE) %>% # remove test user name
+    gsub_response(stringr::str_replace(Sys.getenv('BO_TEST_SERVER'), ':.+$', ''), 'REDACTED', ignore.case = TRUE) %>% # remove test BO server name
+    gsub_response(Sys.info()['nodename'], 'REDACTED', ignore.case = TRUE) %>% # remove host name
+    gsub_response(Sys.getenv('BO_TEST_REDACTION_LIST'), 'redacted', ignore.case = TRUE) %>% # remove based on match in environment variable
+    gsub_response('(redactedredacted|redacted.redacted)', 'redacted', ignore.case = TRUE) # remove multiple
 
   # url <- httptest2::build_mock_url(result)
   log_warn(paste("Redacting request", request_or_response$url))
-  # browser()
+  #browser()
   result
 }
