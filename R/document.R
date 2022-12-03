@@ -45,7 +45,7 @@ close_bo_document <- function(conn, document, save = FALSE) {
   } else if (length(occurrance) > 1) {
     logger::log_info(length(occurrance), "occurences to found for", document_id)
   }
-  occurrance %<>% keep(function(x)x$state!='Unused') %>% head(1)
+  occurrance %<>% purrr::keep(function(x)x$state!='Unused') %>% head(1)
   if (length(occurrance) == 1) {
     occurrance %<>% unlist()
     request$url <- paste(request$url, occurrance[["id"]], sep = "/")

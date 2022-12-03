@@ -103,6 +103,17 @@ init_log <- function() {
   }
 }
 
+#' Test if running under httptest2
+#'
+#' @return Boolean TRUE if running under httptest2
+#'
+#' @noRd
+in_httptest2 <- function() {
+  call <- head(sys.calls(), -1) %>% purrr::keep(~ stringr::str_detect(as.character(.x)[[1]], 'with_mock_dir'))
+  # print(call)
+  return(!is.null(call) && length(call) > 0)
+}
+
 
 
 

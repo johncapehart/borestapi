@@ -219,6 +219,7 @@ request_bo_raylight_endpoint <- function(conn, ..., query, accept=NULL, body = N
   if (!is.null(method)) {
     ref$request %<>% httr2::req_method(method=method)
   }
+  # httr2::req_dry_run(ref$request)
   response <- httr2::req_perform(ref$request)
   report_request_result(ref$request, response, ";Children", "request_bo_raylight_endpoint 197")
   return_bo_response_content(response)

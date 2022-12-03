@@ -1,12 +1,6 @@
 init_options <- function() {
 }
 
-in_httptest2 <- function() {
-  call <- head(sys.calls(), -1) %>% keep(~ stringr::str_detect(as.character(.x)[[1]], 'with_mock_dir'))
-  # print(call)
-  return(!is.null(call) && length(call) > 0)
-}
-
 upload_bo_mtcars <- function(conn, filename, n = NULL, suffix = 1) {
   df <- mtcars
   if (is.null(n)) {

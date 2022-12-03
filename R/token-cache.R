@@ -67,7 +67,7 @@ close_database <- function(db_conn) {
 }
 
 get_table <- function(db_conn, table_name) {
-  dbListTables(db_conn) %>% keep(~ .x == table_name)
+  dbListTables(db_conn) %>% purrr::keep(~ .x == table_name)
 }
 
 get_token_table_name <- function() {

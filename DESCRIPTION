@@ -24,20 +24,21 @@ Imports:
     magrittr,
     methods,
     openssl,
+    openxlsx,
     purrr,
     readr,
     rlang,
     RSQLite,
     stringr,
     tibble,
-    tidyr
+    tidyr,
+    WriteXLS
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.2
 Collate: 
     'api-utils.R'
     'borestapi-package.R'
-    'compat-purrr.R'
     'connect.R'
     'controls.R'
     'document.R'
@@ -52,7 +53,6 @@ Suggests:
     getPass,
     httptest2,
     knitr,
-    openxlsx,
     qpdf,
     rmarkdown,
     testdown,
