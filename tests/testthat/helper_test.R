@@ -1,7 +1,7 @@
 init_options <- function() {
 }
 
-upload_bo_mtcars <- function(conn, filename, n = NULL, suffix = 1) {
+upload_bo_mtcars <- function(conn, filename, parent_folder, n = NULL, suffix = 1) {
   df <- mtcars
   if (is.null(n)) {
     n <- nrow(df)
@@ -14,8 +14,11 @@ upload_bo_mtcars <- function(conn, filename, n = NULL, suffix = 1) {
   df <- tibble::rownames_to_column(df, "model")
   # slice the set
   df <- head(df, n)
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  upload_bo_dataframe(conn, df, filename, folder_id, sheetname = 'Cars')
+  upload_bo_dataframe(conn, df, filename, parent_folder, sheetname = 'Cars')
+}
+
+get_test_folder_id <- function(conn) {
+  head(get_bo_item(conn, name=Sys.getenv('BO_TEST_FOLDER_NAME'), kind='Folder')$SI_ID)
 }
 
 #' Generate httptest2 mock files
@@ -36,8 +39,21 @@ generate_mocks <- function() {
   unlink('mock', recursive = TRUE)
   httptest2::with_mock_dir('mock',{
     clear_all_tokens()# force new token
-    local_options('bo_no_new_tokens'=FALSE) #nale new token
     conn<-open_bo_connection() # force a login with a new token
+    local_options('bo_no_new_tokens'=TRUE) # block new tokens
+    # httptest2::block_requests()
+    devtools::test()
+    # testthat::test_file('test-connect.R')
+    # testthat::test_file('test-api-utils.R')
+    # testthat::test_file('test-document.R')
+    # testthat::test_file('test-report.R')
+    # testthat::test_file('test-controls.R')
+    # testthat::test_file('test-spreadsheet.R')
+  })
+}
+
+test_mocks <- function() {
+  httptest2::with_mock_dir('mock',{
     local_options('bo_no_new_tokens'=TRUE) # block new tokens
     # httptest2::block_requests()
     devtools::test()

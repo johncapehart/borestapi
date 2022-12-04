@@ -131,7 +131,6 @@ upload_bo_spreadsheet <- function(conn, filename, parent_folder, filepath = file
 upload_bo_dataframe <- function(conn, df, filename, parent_folder, sheetname = 'Sheet 1', type = NULL) {
   if (stringr::str_detect(filename, '.xlsx$') || (!is.null(type) && (type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || type == '.xlsx'))) {
     type <- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    require(openxlsx)
     wb2 <- openxlsx::createWorkbook()
     sheet <- wb2 %>% openxlsx::addWorksheet(sheetname)
     openxlsx::writeDataTable(wb2, sheet, df)
@@ -139,13 +138,12 @@ upload_bo_dataframe <- function(conn, df, filename, parent_folder, sheetname = '
     result <- upload_bo_spreadsheet(conn, filename, parent_folder = parent_folder, filepath = filename, type= type)
   } else if (stringr::str_detect(filename, '.xls$') || (!is.null(type) && (type == 'application/vnd.ms-excel' || type == '.xls'))) {
     type <- 'application/vnd.ms-excel'
-    require(WriteXLS)
     WriteXLS::WriteXLS(df, ExcelFileName=filename, SheetNames = sheetname)
     result <- upload_bo_spreadsheet(conn, filename, parent_folder = parent_folder, filepath = filename, type= type)
   } else if (stringr::str_detect(filename, '.csv$') || (!is.null(type) && (type == 'text/csv' || type == '.csv'))) {
     type <- 'text/csv'
     write.table(df, filename, sep = ',')
-    result <- upload_agnostic_document(conn, filename, parent_folder = parent_folder, filepath = filename, type= type)
+    result <- upload_bo_agnostic_document(conn, filename, parent_folder = parent_folder, filepath = filename, type= type)
   }
   file.remove(filename)
   return(result)
@@ -195,7 +193,7 @@ upload_bo_agnostic_document <- function(conn, filename, parent_folder, filepath 
 get_bo_folder_children <- function(conn, parent_folder) {
   request <- check_bo_connection(conn)
   # /biprws/v1/folders/3944223/children
-  request %<>% httr2::req_url_path_append("v1", 'folders', Sys.getenv('BO_TEST_FOLDER_ID'), 'children') %>%
+  request %<>% httr2::req_url_path_append("v1", 'folders', get_test_folder_id(conn), 'children') %>%
     httr2::req_headers('Accept' = 'application/json')
   # httr2::req_dry_run(request)
   response <- httr2::req_perform(request)

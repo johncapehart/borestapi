@@ -134,7 +134,7 @@ get_new_token <- function(conn, server, username, password = NULL) {
   request %<>% httr2::req_url_path_append( 'v1/logon/long') # append longon endpoint to url
   request %<>% httr2::req_body_json(body)
   request %<>% httr2::req_error(is_error = function(resp) FALSE)
-  ## browser()
+  ## httr2::req_dry_run(request)
   response <- httr2::req_perform(request)
   report_request_result(request, response, "New connection")
   if (response$status_code != 200) {

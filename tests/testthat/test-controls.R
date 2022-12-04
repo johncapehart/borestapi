@@ -1,28 +1,28 @@
 test_that(paste("Getting document controls works"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  folder_id = get_test_folder_id(conn)
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document)
   expect_gt(nrow(controls), 0)
-  expect_equal(ignore_attr = TRUE, controls$id[1], 'D.IF0')
+  expect_equal(ignore_attr = TRUE, controls$name[1], 'cyl')
 })
 
 test_that(paste("Getting report controls works"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  folder_id = get_test_folder_id(conn)
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document, Sys.getenv('BO_TEST_REPORT_NAME'))
   expect_gt(nrow(controls), 0)
-  expect_equal(ignore_attr = TRUE, controls$id[1], 'R1598.IF1')
+  expect_equal(ignore_attr = TRUE, controls$name[1], 'gear')
 })
 
 test_that(paste("Getting document controls selection set works"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  folder_id = get_test_folder_id(conn)
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document)
   set <- get_bo_control_selection_set(conn, document, control = controls$name[[1]])
   expect_gt(length(set), 0)
@@ -31,8 +31,8 @@ test_that(paste("Getting document controls selection set works"), {
 test_that(paste("Getting report controls selection set works"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  folder_id = get_test_folder_id(conn)
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document, Sys.getenv('BO_TEST_REPORT_NAME'))
   set <- get_bo_control_selection_set(conn, document, Sys.getenv('BO_TEST_REPORT_NAME'), controls$name[[1]])
   expect_gt(length(set), 0)
@@ -41,8 +41,8 @@ test_that(paste("Getting report controls selection set works"), {
 test_that(paste("Getting document controls selected items"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  folder_id = get_test_folder_id(conn)
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document)
   selection <- get_bo_control_selection(conn, document, control=controls$name[[1]])
   expect_false(is_empty(selection))
@@ -51,9 +51,9 @@ test_that(paste("Getting document controls selected items"), {
 test_that(paste("Getting report control selected items"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
+  folder_id = get_test_folder_id(conn)
   reportname <- Sys.getenv('BO_TEST_REPORT_NAME')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document, reportname)
   selection <- get_bo_control_selection(conn, document, reportname, controls$name[[1]])
   expect_false(is_empty(selection))
@@ -62,8 +62,8 @@ test_that(paste("Getting report control selected items"), {
 test_that(paste("Setting document control selected items"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  folder_id = get_test_folder_id(conn)
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document)
   set_bo_control_selection(conn,document,control=controls$name[[1]],all=TRUE)
   close_bo_document(conn, document, save= TRUE)
@@ -80,9 +80,9 @@ test_that(paste("Setting document control selected items"), {
 test_that(paste("Setting report control selected items"), {
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
   filename <- Sys.getenv('BO_TEST_EXCEL_FILE_NAME')
-  folder_id = Sys.getenv('BO_TEST_FOLDER_ID')
+  folder_id = get_test_folder_id(conn)
   reportname <- Sys.getenv('BO_TEST_REPORT_NAME')
-  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), owner = NULL, kind = "Webi")
+  document <- get_bo_item(conn, name = Sys.getenv('BO_TEST_DOCUMENT_NAME'), parent_folder = get_test_folder_id(conn), owner = NULL, kind = "Webi")
   controls <- get_bo_control_details(conn, document, reportname)
   set_bo_control_selection(conn,document, reportname, control=controls$name[[1]],all=TRUE)
   close_bo_document(conn, document, save= TRUE)
@@ -99,7 +99,7 @@ test_that(paste("Setting report control selected items"), {
 test_that(paste('Data source specification is retrieved'), {
   skip_if_httptest2()
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
-  document <- get_bo_item(conn, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), kind = 'Webi') %>%
+  document <- get_bo_item(conn, parent_folder = get_test_folder_id(conn), kind = 'Webi') %>%
     dplyr::filter(stringr::str_detect(`SI_NAME`, Sys.getenv('BO_TEST_DOCUMENT_NAME_PATTERN')))
 
   provider <- get_bo_data_provider_details(conn, document)
@@ -112,7 +112,7 @@ test_that(paste('Data source specification is retrieved'), {
 test_that(paste('Data source specification can be set'), {
   skip_if_httptest2()
   conn <- open_bo_connection(server=Sys.getenv('BO_TEST_SERVER'))
-  document <- get_bo_item(conn, parent_folder = Sys.getenv('BO_TEST_FOLDER_ID'), kind = 'Webi') %>%
+  document <- get_bo_item(conn, parent_folder = get_test_folder_id(conn), kind = 'Webi') %>%
     dplyr::filter(stringr::str_detect(`SI_NAME`, Sys.getenv('BO_TEST_DOCUMENT_NAME_PATTERN')))
 
   provider <- get_bo_data_provider_details(conn, document)

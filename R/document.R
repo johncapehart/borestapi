@@ -146,8 +146,9 @@ get_bo_data_provider_details <- function(conn, document, data_provider = '') {
 }
 
 refresh_bo_data_provider0 <- function(conn, document_id, provider_id) {
-  request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = provider_id, parameters = '', method = 'PUT')
-  logger::log_info(paste("Refreshed data for", document_id, provider_id, ";trefresh_bo_data_provider line 170"))
+  result <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = provider_id, parameters = '', method = 'PUT')
+  logger::log_info(paste("Refreshed data for", document_id, provider_id, ";t refresh_bo_data_provider line 170"))
+  return(result)
 }
 
 #' Title
@@ -162,8 +163,23 @@ refresh_bo_data_provider <- function(conn, document, data_provider = NULL) {
   document_id <- get_bo_item_id(document)
   dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = '') %>% bind_list()
   if (!is_null_or_empty(data_provider)) {
-    dp %<>% dplyr::filter(.data$id == data_provider)
+    dp %<>% dplyr::filter(.data$id == data_provider || data$name == data_provider)
   }
+  dp$id %>% sapply(function(x) refresh_bo_data_provider0(conn, document_id, x))
+}
+
+#' Title
+#'
+#' @param conn Connection reference
+#' @param document Document as numeric id or tibble of properties
+#' @param data_provider Identifier of the data provider
+#' @param parameter Parameter id
+#'
+#' @return Response content
+#' @export
+get_bo_data_provider_parameter_details <- function(conn, document, data_provider, parameter = '') {
+  document_id <- get_bo_item_id(document)
+  dp <- request_bo_raylight_endpoint(conn, documents = document_id, dataproviders = data_provider, parameters = parameter) %>% bind_list()
   dp$id %>% sapply(function(x) refresh_bo_data_provider0(conn, document_id, x))
 }
 
